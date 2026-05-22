@@ -13,7 +13,7 @@ function App() {
   const [donationLoading, setDonationLoading] = useState(false);
   const [donationSubmitted, setDonationSubmitted] = useState(false);
 
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+  const API_URL = process.env.REACT_APP_API_URL || 'https://atlas-betting-production.up.railway.app';
 
   const fetchData = useCallback(async () => {
     setLoading(true);
