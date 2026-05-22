@@ -467,7 +467,57 @@ async def get_picks_summary():
 # ============================================================================
 # ROOT
 # ============================================================================
+# ============================================================================
+# ADMIN - UPLOAD DATA
+# ============================================================================
 
+@app.post("/api/admin/upload-data")
+async def upload_data(data_type: str, records: list):
+    """Upload dati via API (per admin)"""
+    try:
+        conn = get_db_connection()
+        if not conn:
+            return {"status": "error", "message": "Database unavailable"}, 500
+        
+        cursor = conn.cursor()
+        
+        if data_type == "picks":
+            for pick in records:
+                result = pick.get('result', {}) or {}
+                cursor.execute("""
+                    INSERT INTO picks (date, league, home, away, market, pick, prob, odds, value, won, profit)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """, (pick.get('date'), pick.get('league'), pick.get('home'), pick.get('away'), 
+                      pick.get('market'), pick.get('pick'), pick.get('prob'), pick.get('odds'), 
+                      pick.get('value'), result.get('won'), result.get('profit')))
+        
+        elif data_type == "giocatori":
+            for player in records:
+                cursor.execute("""
+                    INSERT INTO giocatori (id, name, team, league, position, xg_avg_10, pai)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (id) DO NOTHING
+                """, (str(player.get('id')), player.get('name'), player.get('team'), 
+                      player.get('league'), player.get('position'), player.get('xg_avg_10'), player.get('pai', 1.0)))
+        
+        elif data_type == "partite":
+            for p in records:
+                cursor.execute("""
+                    INSERT INTO partite (date, league, home, away, ft_total, xg_total, xg_home, xg_away, won, market, pick)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """, (p.get('date'), p.get('league'), p.get('home'), p.get('away'), 
+                      p.get('ft_total'), p.get('xg_total'), p.get('xg_home'), p.get('xg_away'), 
+                      p.get('won'), p.get('market'), p.get('pick')))
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        return {"status": "success", "message": f"Loaded {len(records)} {data_type}"}
+    
+    except Exception as e:
+        logger.error(f"Upload error: {e}")
+        return {"status": "error", "message": str(e)}, 500
 @app.get("/")
 async def root():
     return {
