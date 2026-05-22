@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
 
 function App() {
@@ -9,11 +9,7 @@ function App() {
 
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const pickRes = await fetch(`${API_URL}/api/picks/2026-04-11`);
@@ -27,7 +23,11 @@ function App() {
       console.error('Fetch error:', err);
     }
     setLoading(false);
-  };
+  }, [API_URL]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   return (
     <div className="app">
