@@ -5,6 +5,7 @@ function App() {
   const [activeTab, setActiveTab] = useState('betting');
   const [picks, setPicks] = useState([]);
   const [giocatori, setGiocatori] = useState([]);
+  const [stats, setStats] = useState([]);
   const [loading, setLoading] = useState(false);
   const [donationAmount, setDonationAmount] = useState(10);
   const [donationEmail, setDonationEmail] = useState('');
@@ -24,6 +25,10 @@ function App() {
       const gRes = await fetch(`${API_URL}/api/giocatori?limit=20`);
       const gData = await gRes.json();
       setGiocatori(gData.data || []);
+
+      const statsRes = await fetch(`${API_URL}/api/analytics/picks-summary`);
+      const statsData = await statsRes.json();
+      setStats(statsData.data || []);
     } catch (err) {
       console.error('Fetch error:', err);
     }
@@ -97,6 +102,12 @@ function App() {
           📊 Live
         </button>
         <button 
+          className={`tab ${activeTab === 'come-funziona' ? 'active' : ''}`}
+          onClick={() => setActiveTab('come-funziona')}
+        >
+          📖 Come funziona
+        </button>
+        <button 
           className={`tab ${activeTab === 'donate' ? 'active' : ''}`}
           onClick={() => setActiveTab('donate')}
         >
@@ -161,6 +172,79 @@ function App() {
           <section className="section">
             <h2>📊 Segnali Live</h2>
             <p>Funzionalità in sviluppo — torna a breve!</p>
+          </section>
+        )}
+
+        {activeTab === 'come-funziona' && (
+          <section className="section">
+            <h2>📖 Come funziona ATLAS</h2>
+            <div className="come-funziona-container">
+              <div className="cf-intro">
+                <p>ATLAS è un sistema intelligente di analisi calcistica che combina dati statistici avanzati e machine learning per generare pick ad alta probabilità.</p>
+              </div>
+
+              <div className="cf-section">
+                <h3>⚽ xG (Expected Goals)</h3>
+                <p>L'Expected Goals misura la qualità e la quantità delle occasioni da gol. ATLAS combina l'xG atteso con lo storico delle ultime 10 partite per identificare opportunità ad alto valore.</p>
+              </div>
+
+              <div className="cf-section">
+                <h3>👥 PAI (Player Availability Index)</h3>
+                <p>Traccia la disponibilità di ogni giocatore chiave basandosi su infortuni, squalifiche, minutaggio recente e stato psicofisico. Un giocatore assente cambia completamente l'equilibrio tattico.</p>
+              </div>
+
+              <div className="cf-section">
+                <h3>📊 H2H (Head to Head)</h3>
+                <p>Analizza gli ultimi 10 scontri diretti tra due squadre per identificare pattern, risultati storici, goal medi e tendenze Over/Under. Il fattore casa è fondamentale.</p>
+              </div>
+
+              <div className="cf-section">
+                <h3>💹 Movimenti Quote</h3>
+                <p>Monitora i movimenti delle quote in tempo reale. Quando un pick ha ottimi fondamentali E la quota si muove favorevolmente, ATLAS identifica il momento ottimale per piazzare la scommessa.</p>
+              </div>
+
+              <div className="cf-section">
+                <h3>🎯 Contesto Tattico</h3>
+                <p>Valuta fattori situazionali come la competizione, il calendario, la forma della squadra, i viaggi lunghi, la pressione di uno scontro diretto e persino il clima. Tutto conta.</p>
+              </div>
+
+              <div className="cf-stats">
+                <h3>📈 Statistiche</h3>
+                {stats && stats.length > 0 ? (
+                  <table className="stats-table">
+                    <thead>
+                      <tr>
+                        <th>Market</th>
+                        <th>Pick</th>
+                        <th>Win Rate</th>
+                        <th>Profit</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {stats.slice(0, 5).map((stat, i) => (
+                        <tr key={i}>
+                          <td>{stat.market}</td>
+                          <td>{stat.total_picks}</td>
+                          <td style={{color: stat.win_rate > 50 ? '#4caf50' : '#f44336'}}>{stat.win_rate}%</td>
+                          <td style={{color: stat.avg_profit > 0 ? '#4caf50' : '#f44336'}}>€{stat.avg_profit > 0 ? '+' : ''}{stat.avg_profit}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <p>Caricamento statistiche...</p>
+                )}
+              </div>
+
+              <div className="cf-cta">
+                <button 
+                  className="cf-btn"
+                  onClick={() => setActiveTab('donate')}
+                >
+                  ❤️ Supporta ATLAS
+                </button>
+              </div>
+            </div>
           </section>
         )}
 
@@ -235,7 +319,7 @@ function App() {
 
         {activeTab === 'info' && (
           <section className="section">
-            <h2>ℹ️ Come funziona ATLAS</h2>
+            <h2>ℹ️ Informazioni</h2>
             <p>ATLAS è un sistema di analisi calcistica che combina:</p>
             <ul>
               <li><strong>xG (Expected Goals)</strong> — probabilità dei gol</li>
@@ -244,13 +328,13 @@ function App() {
               <li><strong>Movimenti quote</strong> — smart money</li>
               <li><strong>Contesto tattico</strong> — fattori esterni</li>
             </ul>
-            <p>I pick sono generati solo quando ATLAS e V5High concordano e la quota è favorevole.</p>
+            <p>I pick sono generati solo quando ATLAS riconosce un'opportunità ad alta probabilità e la quota è favorevole.</p>
           </section>
         )}
       </main>
 
       <footer className="footer">
-        <p>© 2026 ATLAS Betting | <button style={{background: 'none', border: 'none', color: '#2e75b6', cursor: 'pointer', textDecoration: 'underline'}} onClick={() => setActiveTab('info')}>Come funziona</button> | <button style={{background: 'none', border: 'none', color: '#2e75b6', cursor: 'pointer', textDecoration: 'underline'}} onClick={() => setActiveTab('donate')}>Supporta</button></p>
+        <p>© 2026 ATLAS Betting | <button style={{background: 'none', border: 'none', color: '#2e75b6', cursor: 'pointer', textDecoration: 'underline'}} onClick={() => setActiveTab('come-funziona')}>Come funziona</button> | <button style={{background: 'none', border: 'none', color: '#2e75b6', cursor: 'pointer', textDecoration: 'underline'}} onClick={() => setActiveTab('donate')}>Supporta</button></p>
       </footer>
     </div>
   );
