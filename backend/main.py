@@ -7,7 +7,6 @@ from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
 from datetime import datetime
 import logging
-import json
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -181,129 +180,98 @@ async def create_tables_if_not_exist():
         return False
 
 # ============================================================================
-# CARICA DATI
+# CARICA DATI DA FILE PYTHON
 # ============================================================================
 async def load_initial_data():
-    """Carica i dati da JSON al startup"""
+    """Carica dati da Python files"""
     global data_loaded
     
     if data_loaded:
         return
     
     try:
-        logger.info("Loading initial data...")
+        logger.info("Loading initial data from files...")
+        
+        # Import data files
+        try:
+            from data_picks import PICKS_DATA
+            from data_players import PLAYERS_DATA
+            from data_partite import PARTITE_DATA
+        except ImportError as e:
+            logger.error(f"Cannot import data files: {e}")
+            return
         
         conn = get_db_connection()
         if not conn:
-            logger.error("Cannot connect to DB for data loading")
+            logger.error("Cannot connect to DB")
             return
         
         cursor = conn.cursor()
         
-        # Check se picks sono già caricati
+        # Check if already loaded
         cursor.execute("SELECT COUNT(*) FROM picks")
-        picks_count = cursor.fetchone()[0]
-        
-        if picks_count > 0:
-            logger.info(f"Database already populated ({picks_count} picks)")
+        if cursor.fetchone()[0] > 0:
+            logger.info("Database already populated")
             data_loaded = True
             cursor.close()
             conn.close()
             return
         
-        # Carica picks
-        logger.info("Loading picks...")
-        with open('/mnt/project/atlas_ml_master.json', 'r') as f:
-            picks = json.load(f)
-        
-        for pick in picks:
-            result = pick.get('result', {}) or {}
+        # Load picks
+        logger.info(f"Loading {len(PICKS_DATA)} picks...")
+        for pick in PICKS_DATA:
             try:
+                result = pick.get('result', {}) or {}
                 cursor.execute("""
                     INSERT INTO picks (date, league, home, away, market, pick, prob, odds, value, won, profit)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                """, (
-                    pick.get('date'),
-                    pick.get('league'),
-                    pick.get('home'),
-                    pick.get('away'),
-                    pick.get('market'),
-                    pick.get('pick'),
-                    pick.get('prob'),
-                    pick.get('odds'),
-                    pick.get('value'),
-                    result.get('won'),
-                    result.get('profit')
-                ))
-            except:
-                pass
+                """, (pick.get('date'), pick.get('league'), pick.get('home'), pick.get('away'),
+                      pick.get('market'), pick.get('pick'), pick.get('prob'), pick.get('odds'),
+                      pick.get('value'), result.get('won'), result.get('profit')))
+            except Exception as e:
+                logger.error(f"Pick insert error: {e}")
         
         conn.commit()
-        logger.info(f"Loaded {len(picks)} picks")
+        logger.info(f"Loaded {len(PICKS_DATA)} picks")
         
-        # Carica giocatori
-        logger.info("Loading players...")
-        with open('/mnt/project/player_props_db.json', 'r') as f:
-            players = json.load(f)
-        
-        for player_id, player_data in players.items():
+        # Load players
+        logger.info(f"Loading {len(PLAYERS_DATA)} players...")
+        for player_id, pdata in PLAYERS_DATA.items():
             try:
-                xg_history = player_data.get('xg_history', [])
+                xg_history = pdata.get('xg_history', [])
                 xg_avg = sum(xg_history[-10:]) / len(xg_history[-10:]) if xg_history else 0
-                
                 cursor.execute("""
                     INSERT INTO giocatori (id, name, team, league, position, xg_avg_10, pai)
                     VALUES (%s, %s, %s, %s, %s, %s, %s)
                     ON CONFLICT (id) DO NOTHING
-                """, (
-                    str(player_id),
-                    player_data.get('name'),
-                    player_data.get('team'),
-                    player_data.get('league'),
-                    player_data.get('position'),
-                    round(xg_avg, 2),
-                    player_data.get('pai', 1.0)
-                ))
-            except:
-                pass
+                """, (str(player_id), pdata.get('name'), pdata.get('team'), pdata.get('league'),
+                      pdata.get('position'), round(xg_avg, 2), pdata.get('pai', 1.0)))
+            except Exception as e:
+                logger.error(f"Player insert error: {e}")
         
         conn.commit()
-        logger.info(f"Loaded {len(players)} players")
+        logger.info(f"Loaded {len(PLAYERS_DATA)} players")
         
-        # Carica partite
-        logger.info("Loading matches...")
-        with open('/mnt/user-data/uploads/atlas_ml_universe.json', 'r') as f:
-            partite_list = json.load(f)
-        
-        for partita in partite_list:
+        # Load matches
+        logger.info(f"Loading {len(PARTITE_DATA)} matches...")
+        for p in PARTITE_DATA:
             try:
                 cursor.execute("""
                     INSERT INTO partite (date, league, home, away, ft_total, xg_total, xg_home, xg_away, won, market, pick)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                """, (
-                    partita.get('date'),
-                    partita.get('league'),
-                    partita.get('home'),
-                    partita.get('away'),
-                    partita.get('ft_total'),
-                    partita.get('xg_total'),
-                    partita.get('xg_home'),
-                    partita.get('xg_away'),
-                    partita.get('won'),
-                    partita.get('market'),
-                    partita.get('pick')
-                ))
-            except:
-                pass
+                """, (p.get('date'), p.get('league'), p.get('home'), p.get('away'), p.get('ft_total'),
+                      p.get('xg_total'), p.get('xg_home'), p.get('xg_away'), p.get('won'), p.get('market'), p.get('pick')))
+            except Exception as e:
+                logger.error(f"Match insert error: {e}")
         
         conn.commit()
-        logger.info(f"Loaded {len(partite_list)} matches")
+        logger.info(f"Loaded {len(PARTITE_DATA)} matches")
         
         cursor.close()
         conn.close()
         
         data_loaded = True
-        logger.info("All data loaded!")
+        logger.info("All data loaded successfully!")
         
     except Exception as e:
         logger.error(f"Data loading error: {e}")
@@ -586,7 +554,7 @@ async def root():
 
 @app.on_event("startup")
 async def startup():
-    logger.info("ATLAS Betting API starting...")
+    logger.info("🚀 ATLAS Betting API starting...")
     await create_tables_if_not_exist()
     await load_initial_data()
-    logger.info("ATLAS Betting API ready!")
+    logger.info("✅ ATLAS Betting API ready!")
