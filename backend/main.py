@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -47,6 +48,45 @@ def get_db_connection():
 
 # Flag per non ricaricare dati
 data_loaded = False
+
+# ============================================================================
+# PYDANTIC MODELS
+# ============================================================================
+
+class PickData(BaseModel):
+    date: str = None
+    league: str = None
+    home: str = None
+    away: str = None
+    market: str = None
+    pick: str = None
+    prob: int = None
+    odds: float = None
+    value: float = None
+    won: bool = None
+    profit: float = None
+
+class PlayerData(BaseModel):
+    id: str
+    name: str = None
+    team: str = None
+    league: str = None
+    position: str = None
+    xg_avg_10: float = 0
+    pai: float = 1.0
+
+class MatchData(BaseModel):
+    date: str = None
+    league: str = None
+    home: str = None
+    away: str = None
+    ft_total: int = None
+    xg_total: float = None
+    xg_home: float = None
+    xg_away: float = None
+    won: bool = None
+    market: str = None
+    pick: str = None
 
 # ============================================================================
 # CREA TABELLE
@@ -465,59 +505,71 @@ async def get_picks_summary():
         return {"status": "error", "message": str(e)}, 500
 
 # ============================================================================
-# ROOT
-# ============================================================================
-# ============================================================================
-# ADMIN - UPLOAD DATA
+# ADMIN - BATCH LOAD DATA
 # ============================================================================
 
-@app.post("/api/admin/upload-data")
-async def upload_data(data_type: str, records: list):
-    """Upload dati via API (per admin)"""
+@app.post("/api/admin/load-batch")
+async def load_batch_data(picks: list[PickData] = [], players: list[PlayerData] = [], matches: list[MatchData] = []):
+    """Carica dati batch via POST JSON"""
     try:
         conn = get_db_connection()
         if not conn:
             return {"status": "error", "message": "Database unavailable"}, 500
         
         cursor = conn.cursor()
+        loaded = 0
         
-        if data_type == "picks":
-            for pick in records:
-                result = pick.get('result', {}) or {}
+        # Carica picks
+        for pick in picks:
+            try:
                 cursor.execute("""
                     INSERT INTO picks (date, league, home, away, market, pick, prob, odds, value, won, profit)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                """, (pick.get('date'), pick.get('league'), pick.get('home'), pick.get('away'), 
-                      pick.get('market'), pick.get('pick'), pick.get('prob'), pick.get('odds'), 
-                      pick.get('value'), result.get('won'), result.get('profit')))
+                """, (pick.date, pick.league, pick.home, pick.away, pick.market, pick.pick, 
+                      pick.prob, pick.odds, pick.value, pick.won, pick.profit))
+                loaded += 1
+            except Exception as e:
+                logger.error(f"Pick insert error: {e}")
         
-        elif data_type == "giocatori":
-            for player in records:
+        # Carica players
+        for player in players:
+            try:
                 cursor.execute("""
                     INSERT INTO giocatori (id, name, team, league, position, xg_avg_10, pai)
                     VALUES (%s, %s, %s, %s, %s, %s, %s)
                     ON CONFLICT (id) DO NOTHING
-                """, (str(player.get('id')), player.get('name'), player.get('team'), 
-                      player.get('league'), player.get('position'), player.get('xg_avg_10'), player.get('pai', 1.0)))
+                """, (player.id, player.name, player.team, player.league, player.position, 
+                      player.xg_avg_10, player.pai))
+                loaded += 1
+            except Exception as e:
+                logger.error(f"Player insert error: {e}")
         
-        elif data_type == "partite":
-            for p in records:
+        # Carica matches
+        for match in matches:
+            try:
                 cursor.execute("""
                     INSERT INTO partite (date, league, home, away, ft_total, xg_total, xg_home, xg_away, won, market, pick)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                """, (p.get('date'), p.get('league'), p.get('home'), p.get('away'), 
-                      p.get('ft_total'), p.get('xg_total'), p.get('xg_home'), p.get('xg_away'), 
-                      p.get('won'), p.get('market'), p.get('pick')))
+                """, (match.date, match.league, match.home, match.away, match.ft_total, match.xg_total,
+                      match.xg_home, match.xg_away, match.won, match.market, match.pick))
+                loaded += 1
+            except Exception as e:
+                logger.error(f"Match insert error: {e}")
         
         conn.commit()
         cursor.close()
         conn.close()
         
-        return {"status": "success", "message": f"Loaded {len(records)} {data_type}"}
+        return {"status": "success", "loaded": loaded, "total": len(picks) + len(players) + len(matches)}
     
     except Exception as e:
-        logger.error(f"Upload error: {e}")
+        logger.error(f"Batch load error: {e}")
         return {"status": "error", "message": str(e)}, 500
+
+# ============================================================================
+# ROOT
+# ============================================================================
+
 @app.get("/")
 async def root():
     return {
