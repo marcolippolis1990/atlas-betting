@@ -623,6 +623,47 @@ async def get_donation_stats():
     except Exception as e:
         logger.error(f"Stats error: {e}")
         return {"status": "error", "message": str(e)}, 500
+@app.get("/api/analytics/picks-summary")
+async def get_picks_summary():
+    """Analytics: Riepilogo performance per market"""
+    try:
+        conn = get_db_connection()
+        if not conn:
+            return {"status": "error", "message": "Database unavailable"}, 500
+        
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            SELECT 
+                market,
+                league,
+                COUNT(*) as total_picks,
+                ROUND(SUM(CASE WHEN won = 1 THEN 1 ELSE 0 END)::float / COUNT(*) * 100, 1) as win_rate,
+                ROUND(AVG(profit), 2) as avg_profit
+            FROM picks
+            GROUP BY market, league
+            ORDER BY total_picks DESC
+        """)
+        
+        results = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        
+        data = []
+        for row in results:
+            data.append({
+                "market": row[0],
+                "league": row[1],
+                "total_picks": row[2],
+                "win_rate": row[3] or 0,
+                "avg_profit": row[4] or 0
+            })
+        
+        return {"status": "success", "data": data}
+    
+    except Exception as e:
+        logger.error(f"Analytics error: {e}")
+        return {"status": "error", "message": str(e)}, 500
 @app.get("/")
 async def root():
     return {
