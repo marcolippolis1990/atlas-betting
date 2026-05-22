@@ -6,6 +6,7 @@ from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
 from datetime import datetime
 import logging
+import json
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -45,6 +46,134 @@ def get_db_connection():
         logger.error(f"❌ Errore connessione DB: {e}")
         return None
 
+# Flag per tracciare se i dati sono già caricati
+data_loaded = False
+
+async def load_initial_data():
+    """Carica i dati da JSON al startup"""
+    global data_loaded
+    
+    if data_loaded:
+        return
+    
+    try:
+        logger.info("⏳ Caricando dati iniziali...")
+        
+        conn = get_db_connection()
+        if not conn:
+            logger.error("❌ Connessione DB fallita")
+            return
+        
+        cursor = conn.cursor()
+        
+        # Check se picks sono già caricati
+        cursor.execute("SELECT COUNT(*) FROM picks")
+        picks_count = cursor.fetchone()[0]
+        
+        if picks_count > 0:
+            logger.info(f"✅ Database già popolato ({picks_count} picks)")
+            data_loaded = True
+            cursor.close()
+            conn.close()
+            return
+        
+        # Carica picks
+        logger.info("📊 Caricando picks...")
+        with open('/mnt/project/atlas_ml_master.json', 'r') as f:
+            picks = json.load(f)
+        
+        for pick in picks:
+            result = pick.get('result', {}) or {}
+            try:
+                cursor.execute("""
+                    INSERT INTO picks (date, league, home, away, market, pick, prob, odds, value, won, profit)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """, (
+                    pick.get('date'),
+                    pick.get('league'),
+                    pick.get('home'),
+                    pick.get('away'),
+                    pick.get('market'),
+                    pick.get('pick'),
+                    pick.get('prob'),
+                    pick.get('odds'),
+                    pick.get('value'),
+                    result.get('won'),
+                    result.get('profit')
+                ))
+            except:
+                pass
+        
+        conn.commit()
+        logger.info(f"✅ Caricati {len(picks)} picks")
+        
+        # Carica giocatori
+        logger.info("👥 Caricando giocatori...")
+        with open('/mnt/project/player_props_db.json', 'r') as f:
+            players = json.load(f)
+        
+        for player_id, player_data in players.items():
+            try:
+                xg_history = player_data.get('xg_history', [])
+                xg_avg = sum(xg_history[-10:]) / len(xg_history[-10:]) if xg_history else 0
+                
+                cursor.execute("""
+                    INSERT INTO giocatori (id, name, team, league, position, xg_avg_10, pai)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (id) DO NOTHING
+                """, (
+                    str(player_id),
+                    player_data.get('name'),
+                    player_data.get('team'),
+                    player_data.get('league'),
+                    player_data.get('position'),
+                    round(xg_avg, 2),
+                    player_data.get('pai', 1.0)
+                ))
+            except:
+                pass
+        
+        conn.commit()
+        logger.info(f"✅ Caricati {len(players)} giocatori")
+        
+        # Carica partite
+        logger.info("⚽ Caricando partite...")
+        with open('/mnt/user-data/uploads/atlas_ml_universe.json', 'r') as f:
+            partite_list = json.load(f)
+        
+        for partita in partite_list:
+            try:
+                cursor.execute("""
+                    INSERT INTO partite (date, league, home, away, ft_total, xg_total, xg_home, xg_away, won, market, pick)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """, (
+                    partita.get('date'),
+                    partita.get('league'),
+                    partita.get('home'),
+                    partita.get('away'),
+                    partita.get('ft_total'),
+                    partita.get('xg_total'),
+                    partita.get('xg_home'),
+                    partita.get('xg_away'),
+                    partita.get('won'),
+                    partita.get('market'),
+                    partita.get('pick')
+                ))
+            except:
+                pass
+        
+        conn.commit()
+        logger.info(f"✅ Caricate {len(partite_list)} partite")
+        
+        cursor.close()
+        conn.close()
+        
+        data_loaded = True
+        logger.info("🎉 Dati iniziali caricati!")
+        
+    except Exception as e:
+        logger.error(f"❌ Errore caricamento dati: {e}")
+
 # ============================================================================
 # HEALTH CHECK
 # ============================================================================
@@ -80,7 +209,6 @@ async def get_picks(league: str = None, market: str = None, limit: int = 100):
             
         cursor = conn.cursor(cursor_factory=RealDictCursor)
         
-        # Build query dinamico
         where_clauses = []
         params = []
         
@@ -250,62 +378,7 @@ async def get_picks_summary():
 # ============================================================================
 # ROOT
 # ============================================================================
-# ============================================================================
-# ENDPOINT - LOAD DATA
-# ============================================================================
 
-@app.post("/api/admin/load-data")
-async def load_data_from_json():
-    """Carica dati da JSON nel database"""
-    import json
-    
-    try:
-        conn = get_db_connection()
-        if not conn:
-            return {"status": "error", "message": "Database non disponibile"}, 500
-        
-        cursor = conn.cursor()
-        
-        # Load picks
-        with open('/mnt/project/atlas_ml_master.json', 'r') as f:
-            picks = json.load(f)
-        
-        picks_count = 0
-        for pick in picks:
-            result = pick.get('result', {}) or {}
-            try:
-                cursor.execute("""
-                    INSERT INTO picks (date, league, home, away, market, pick, prob, odds, value, won, profit)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                """, (
-                    pick.get('date'),
-                    pick.get('league'),
-                    pick.get('home'),
-                    pick.get('away'),
-                    pick.get('market'),
-                    pick.get('pick'),
-                    pick.get('prob'),
-                    pick.get('odds'),
-                    pick.get('value'),
-                    result.get('won'),
-                    result.get('profit')
-                ))
-                picks_count += 1
-            except:
-                pass
-        
-        conn.commit()
-        cursor.close()
-        conn.close()
-        
-        return {
-            "status": "success",
-            "message": f"Caricati {picks_count} pick"
-        }
-    
-    except Exception as e:
-        logger.error(f"Error load_data: {e}")
-        return {"status": "error", "message": str(e)}, 500
 @app.get("/")
 async def root():
     return {
@@ -315,6 +388,16 @@ async def root():
         "docs": "/docs",
         "timestamp": datetime.now().isoformat()
     }
+
+# ============================================================================
+# STARTUP - CARICA DATI
+# ============================================================================
+
+@app.on_event("startup")
+async def startup():
+    logger.info("🚀 ATLAS Betting API started")
+    logger.info(f"Environment: {ENVIRONMENT if 'ENVIRONMENT' in dir() else 'production'}")
+    await load_initial_data()
 
 # ============================================================================
 # FINE
