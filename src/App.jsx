@@ -250,7 +250,7 @@ function App() {
       </main>
 
       <footer className="footer">
-        <p>© 2026 ATLAS Betting | <a href="#" onClick={() => setActiveTab('info')}>Come funziona</a> | <a href="#" onClick={() => setActiveTab('donate')}>Supporta</a></p>
+        <p>© 2026 ATLAS Betting | <button style={{background: 'none', border: 'none', color: '#2e75b6', cursor: 'pointer', textDecoration: 'underline'}} onClick={() => setActiveTab('info')}>Come funziona</button> | <button style={{background: 'none', border: 'none', color: '#2e75b6', cursor: 'pointer', textDecoration: 'underline'}} onClick={() => setActiveTab('donate')}>Supporta</button></p>
       </footer>
     </div>
   );
