@@ -122,4 +122,138 @@ function App() {
               <div className="picks-grid">
                 {picks.map((pick, i) => (
                   <div key={i} className="pick-card">
-                    <h3>{
+                    <h3>{pick.home} vs {pick.away}</h3>
+                    <p><strong>Pick:</strong> {pick.pick || '-'}</p>
+                    <p><strong>Quota:</strong> {pick.odds || '-'}</p>
+                    <p><strong>Probabilità:</strong> {pick.prob || '-'}%</p>
+                    <p><strong>Valore:</strong> {pick.value || '-'}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+
+        {activeTab === 'fantacalcio' && (
+          <section className="section">
+            <h2>👥 Top Giocatori</h2>
+            {loading ? (
+              <p>Caricamento...</p>
+            ) : giocatori.length === 0 ? (
+              <p>Nessun giocatore disponibile</p>
+            ) : (
+              <div className="giocatori-grid">
+                {giocatori.map((g, i) => (
+                  <div key={i} className="giocatore-card">
+                    <h3>{g.name || 'Giocatore'}</h3>
+                    <p><strong>Squadra:</strong> {g.team || '-'}</p>
+                    <p><strong>Ruolo:</strong> {g.position || '-'}</p>
+                    <p><strong>xG Avg (10):</strong> {g.xg_avg_10 || '-'}</p>
+                    <p><strong>PAI:</strong> {g.pai || '-'}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+
+        {activeTab === 'live' && (
+          <section className="section">
+            <h2>📊 Segnali Live</h2>
+            <p>Funzionalità in sviluppo — torna a breve!</p>
+          </section>
+        )}
+
+        {activeTab === 'donate' && (
+          <section className="section donate-section">
+            <h2>❤️ Supporta ATLAS</h2>
+            {!donationSubmitted ? (
+              <form onSubmit={handleDonation} className="donation-form">
+                <div className="form-group">
+                  <label>Importo (€)</label>
+                  <div className="amount-presets">
+                    {[5, 10, 25, 50, 100].map(amt => (
+                      <button
+                        key={amt}
+                        type="button"
+                        className={`preset-btn ${donationAmount === amt ? 'active' : ''}`}
+                        onClick={() => setDonationAmount(amt)}
+                      >
+                        €{amt}
+                      </button>
+                    ))}
+                  </div>
+                  <input
+                    type="number"
+                    value={donationAmount}
+                    onChange={(e) => setDonationAmount(parseFloat(e.target.value))}
+                    min="1"
+                    step="0.50"
+                    className="form-input"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Email</label>
+                  <input
+                    type="email"
+                    value={donationEmail}
+                    onChange={(e) => setDonationEmail(e.target.value)}
+                    placeholder="tua@email.com"
+                    className="form-input"
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Messaggio (opzionale)</label>
+                  <textarea
+                    value={donationMessage}
+                    onChange={(e) => setDonationMessage(e.target.value)}
+                    placeholder="Un messaggio di supporto..."
+                    className="form-input"
+                    rows="4"
+                  />
+                </div>
+
+                <button 
+                  type="submit" 
+                  disabled={donationLoading}
+                  className="donate-btn"
+                >
+                  {donationLoading ? '⏳ Elaborazione...' : `💳 Dona €${donationAmount} con PayPal`}
+                </button>
+              </form>
+            ) : (
+              <div className="donation-success">
+                <h3>✅ Grazie mille!</h3>
+                <p>La tua donazione è stata registrata. Verrai reindirizzato a PayPal...</p>
+              </div>
+            )}
+          </section>
+        )}
+
+        {activeTab === 'info' && (
+          <section className="section">
+            <h2>ℹ️ Come funziona ATLAS</h2>
+            <p>ATLAS è un sistema di analisi calcistica che combina:</p>
+            <ul>
+              <li><strong>xG (Expected Goals)</strong> — probabilità dei gol</li>
+              <li><strong>PAI (Player Availability Index)</strong> — assenze giocatori</li>
+              <li><strong>H2H</strong> — storico scontri diretti</li>
+              <li><strong>Movimenti quote</strong> — smart money</li>
+              <li><strong>Contesto tattico</strong> — fattori esterni</li>
+            </ul>
+            <p>I pick sono generati solo quando ATLAS e V5High concordano e la quota è favorevole.</p>
+          </section>
+        )}
+      </main>
+
+      <footer className="footer">
+        <p>© 2026 ATLAS Betting | <a href="#" onClick={() => setActiveTab('info')}>Come funziona</a> | <a href="#" onClick={() => setActiveTab('donate')}>Supporta</a></p>
+      </footer>
+    </div>
+  );
+}
+
+export default App;
