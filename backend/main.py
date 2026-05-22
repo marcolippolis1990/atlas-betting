@@ -537,7 +537,92 @@ async def load_batch_data(picks: list[PickData] = [], players: list[PlayerData] 
 # ============================================================================
 # ROOT
 # ============================================================================
+# ============================================================================
+# MODELS - DONAZIONI
+# ============================================================================
 
+class DonationData(BaseModel):
+    email: str
+    amount: float
+    message: str = ""
+    stripe_payment_id: str = ""
+
+# ============================================================================
+# API - DONAZIONI
+# ============================================================================
+
+@app.post("/api/donazioni")
+async def create_donation(donation: DonationData):
+    """Salva una donazione nel database"""
+    try:
+        conn = get_db_connection()
+        if not conn:
+            return {"status": "error", "message": "Database unavailable"}, 500
+        
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            INSERT INTO donazioni (email, amount, stripe_payment_id, status)
+            VALUES (%s, %s, %s, %s)
+        """, (
+            donation.email,
+            donation.amount,
+            donation.stripe_payment_id,
+            'completed'
+        ))
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        logger.info(f"Donazione salvata: {donation.email} - €{donation.amount}")
+        
+        return {
+            "status": "success",
+            "message": f"Donazione di €{donation.amount} registrata",
+            "email": donation.email
+        }
+    
+    except Exception as e:
+        logger.error(f"Donation error: {e}")
+        return {"status": "error", "message": str(e)}, 500
+
+@app.get("/api/donazioni/stats")
+async def get_donation_stats():
+    """Statistiche donazioni"""
+    try:
+        conn = get_db_connection()
+        if not conn:
+            return {"status": "error", "message": "Database unavailable"}, 500
+        
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            SELECT 
+                COUNT(*) as total_donations,
+                SUM(amount) as total_amount,
+                ROUND(AVG(amount), 2) as avg_amount,
+                MAX(amount) as max_amount
+            FROM donazioni
+        """)
+        
+        result = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        
+        return {
+            "status": "success",
+            "data": {
+                "total_donations": result[0] or 0,
+                "total_amount": float(result[1]) if result[1] else 0,
+                "avg_amount": float(result[2]) if result[2] else 0,
+                "max_amount": float(result[3]) if result[3] else 0
+            }
+        }
+    
+    except Exception as e:
+        logger.error(f"Stats error: {e}")
+        return {"status": "error", "message": str(e)}, 500
 @app.get("/")
 async def root():
     return {
