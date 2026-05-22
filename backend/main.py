@@ -250,7 +250,62 @@ async def get_picks_summary():
 # ============================================================================
 # ROOT
 # ============================================================================
+# ============================================================================
+# ENDPOINT - LOAD DATA
+# ============================================================================
 
+@app.post("/api/admin/load-data")
+async def load_data_from_json():
+    """Carica dati da JSON nel database"""
+    import json
+    
+    try:
+        conn = get_db_connection()
+        if not conn:
+            return {"status": "error", "message": "Database non disponibile"}, 500
+        
+        cursor = conn.cursor()
+        
+        # Load picks
+        with open('/mnt/project/atlas_ml_master.json', 'r') as f:
+            picks = json.load(f)
+        
+        picks_count = 0
+        for pick in picks:
+            result = pick.get('result', {}) or {}
+            try:
+                cursor.execute("""
+                    INSERT INTO picks (date, league, home, away, market, pick, prob, odds, value, won, profit)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """, (
+                    pick.get('date'),
+                    pick.get('league'),
+                    pick.get('home'),
+                    pick.get('away'),
+                    pick.get('market'),
+                    pick.get('pick'),
+                    pick.get('prob'),
+                    pick.get('odds'),
+                    pick.get('value'),
+                    result.get('won'),
+                    result.get('profit')
+                ))
+                picks_count += 1
+            except:
+                pass
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        return {
+            "status": "success",
+            "message": f"Caricati {picks_count} pick"
+        }
+    
+    except Exception as e:
+        logger.error(f"Error load_data: {e}")
+        return {"status": "error", "message": str(e)}, 500
 @app.get("/")
 async def root():
     return {
