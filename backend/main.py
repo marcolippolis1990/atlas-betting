@@ -1,12 +1,32 @@
-from fastapi import FastAPI, Query
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import json
 import os
+import psycopg2
+from psycopg2.extras import RealDictCursor
+from dotenv import load_dotenv
 from datetime import datetime
+import logging
 
-app = FastAPI(title="ATLAS Betting API", version="1.0.0")
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-# CORS setup per frontend
+# Load environment variables
+load_dotenv()
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if not DATABASE_URL:
+    logger.error("❌ DATABASE_URL non configurato!")
+    DATABASE_URL = "postgresql://postgres:xxxxx@roundhouse.proxy.rlwy.net:5432/railway"
+
+app = FastAPI(
+    title="ATLAS Betting API",
+    description="Picking calcistico intelligente",
+    version="1.0.0"
+)
+
+# CORS configuration
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -15,105 +35,232 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Carica i dati dai JSON (placeholder per ora)
-DATA = {
-    "picks": [],
-    "giocatori": [],
-    "partite": [],
-    "live_signals": []
-}
+# Database connection
+def get_db_connection():
+    """Connessione al database PostgreSQL"""
+    try:
+        conn = psycopg2.connect(DATABASE_URL)
+        return conn
+    except Exception as e:
+        logger.error(f"❌ Errore connessione DB: {e}")
+        return None
 
-# Carica player props se esiste
-try:
-    with open('data/player_props_db.json', encoding='utf-8') as f:
-        DATA["giocatori"] = json.load(f)
-except:
-    DATA["giocatori"] = []
+# ============================================================================
+# HEALTH CHECK
+# ============================================================================
 
-@app.get("/")
-def root():
-    return {
-        "message": "ATLAS Betting API v1.0",
-        "status": "online",
-        "timestamp": datetime.now().isoformat()
-    }
+@app.get("/health")
+async def health_check():
+    """Verifica che l'app sia online"""
+    try:
+        conn = get_db_connection()
+        if conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT 1")
+            cursor.close()
+            conn.close()
+            return {"status": "healthy", "database": "connected", "timestamp": datetime.now().isoformat()}
+        else:
+            return {"status": "healthy", "database": "disconnected", "timestamp": datetime.now().isoformat()}
+    except Exception as e:
+        logger.error(f"Health check failed: {e}")
+        return {"status": "unhealthy", "error": str(e)}, 500
 
-@app.get("/api/health")
-def health():
-    return {"status": "ok"}
+# ============================================================================
+# ENDPOINTS - PICKS
+# ============================================================================
 
-@app.get("/api/picks/{data}")
-def get_picks(data: str):
-    """Restituisce i pick per una data specifica"""
-    return {
-        "data": data,
-        "picks": DATA["picks"],
-        "count": len(DATA["picks"])
-    }
+@app.get("/api/picks")
+async def get_picks(league: str = None, market: str = None, limit: int = 100):
+    """Ritorna pick dal database"""
+    try:
+        conn = get_db_connection()
+        if not conn:
+            return {"status": "error", "message": "Database non disponibile"}, 500
+            
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        
+        # Build query dinamico
+        where_clauses = []
+        params = []
+        
+        if league:
+            where_clauses.append("league = %s")
+            params.append(league)
+        
+        if market:
+            where_clauses.append("market = %s")
+            params.append(market)
+        
+        where_sql = " WHERE " + " AND ".join(where_clauses) if where_clauses else ""
+        params.append(limit)
+        
+        cursor.execute(f"""
+            SELECT id, date, league, home, away, market, pick,
+                   prob, odds, value, won, profit
+            FROM picks
+            {where_sql}
+            ORDER BY date DESC
+            LIMIT %s
+        """, params)
+        
+        picks = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        
+        return {
+            "status": "success",
+            "count": len(picks) if picks else 0,
+            "data": list(picks) if picks else []
+        }
+    except Exception as e:
+        logger.error(f"Error get_picks: {e}")
+        return {"status": "error", "message": str(e)}, 500
+
+# ============================================================================
+# ENDPOINTS - GIOCATORI
+# ============================================================================
 
 @app.get("/api/giocatori")
-def get_giocatori(
-    lega: str = Query(None),
-    min_xg: float = Query(0),
-    posizione: str = Query(None),
-    skip: int = Query(0),
-    limit: int = Query(50)
-):
-    """Restituisce giocatori con filtri"""
-    risultati = DATA["giocatori"]
-    
-    if lega:
-        risultati = [g for g in risultati if g.get('lega') == lega]
-    if posizione:
-        risultati = [g for g in risultati if g.get('posizione') == posizione]
-    if min_xg > 0:
-        risultati = [g for g in risultati if float(g.get('xg', 0)) >= min_xg]
-    
-    return {
-        "total": len(risultati),
-        "count": len(risultati[skip:skip+limit]),
-        "giocatori": risultati[skip:skip+limit]
-    }
+async def get_giocatori(team: str = None, position: str = None, limit: int = 50):
+    """Ritorna giocatori dal database"""
+    try:
+        conn = get_db_connection()
+        if not conn:
+            return {"status": "error", "message": "Database non disponibile"}, 500
+            
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        
+        where_clauses = []
+        params = []
+        
+        if team:
+            where_clauses.append("LOWER(team) = LOWER(%s)")
+            params.append(team)
+        
+        if position:
+            where_clauses.append("position = %s")
+            params.append(position)
+        
+        where_sql = " WHERE " + " AND ".join(where_clauses) if where_clauses else ""
+        params.append(limit)
+        
+        cursor.execute(f"""
+            SELECT id, name, team, position, appearances,
+                   xg_avg_10, pai, form_trend, momentum_score
+            FROM giocatori
+            {where_sql}
+            ORDER BY xg_avg_10 DESC
+            LIMIT %s
+        """, params)
+        
+        giocatori = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        
+        return {
+            "status": "success",
+            "count": len(giocatori) if giocatori else 0,
+            "data": list(giocatori) if giocatori else []
+        }
+    except Exception as e:
+        logger.error(f"Error get_giocatori: {e}")
+        return {"status": "error", "message": str(e)}, 500
 
-@app.get("/api/giocatori/{giocatore_id}")
-def get_giocatore(giocatore_id: str):
-    """Restituisce dettagli di un giocatore"""
-    for g in DATA["giocatori"]:
-        if g.get('id') == giocatore_id or g.get('nome', '').lower() == giocatore_id.lower():
-            return g
-    return {"error": "Giocatore non trovato"}
+# ============================================================================
+# ENDPOINTS - PARTITE
+# ============================================================================
 
 @app.get("/api/partite")
-def get_partite(data: str = Query(None)):
-    """Restituisce partite per una data"""
-    return {
-        "data": data,
-        "partite": DATA["partite"],
-        "count": len(DATA["partite"])
-    }
+async def get_partite(league: str = None, limit: int = 100):
+    """Ritorna partite storiche dal database"""
+    try:
+        conn = get_db_connection()
+        if not conn:
+            return {"status": "error", "message": "Database non disponibile"}, 500
+            
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        
+        where_sql = " WHERE league = %s" if league else ""
+        params = [league] if league else []
+        params.append(limit)
+        
+        cursor.execute(f"""
+            SELECT id, date, league, home, away, ft_total,
+                   xg_total, xg_home, xg_away, won, market
+            FROM partite
+            {where_sql}
+            ORDER BY date DESC
+            LIMIT %s
+        """, params)
+        
+        partite = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        
+        return {
+            "status": "success",
+            "count": len(partite) if partite else 0,
+            "data": list(partite) if partite else []
+        }
+    except Exception as e:
+        logger.error(f"Error get_partite: {e}")
+        return {"status": "error", "message": str(e)}, 500
 
-@app.get("/api/live-signals")
-def get_live_signals():
-    """Restituisce segnali live in-play"""
+# ============================================================================
+# ENDPOINTS - ANALYTICS
+# ============================================================================
+
+@app.get("/api/analytics/picks-summary")
+async def get_picks_summary():
+    """Riepilogo performance picks per market"""
+    try:
+        conn = get_db_connection()
+        if not conn:
+            return {"status": "error", "message": "Database non disponibile"}, 500
+            
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        
+        cursor.execute("""
+            SELECT 
+                market,
+                league,
+                COUNT(*) as total_picks,
+                SUM(CASE WHEN won THEN 1 ELSE 0 END) as wins,
+                ROUND(100.0 * SUM(CASE WHEN won THEN 1 ELSE 0 END) / COUNT(*), 2) as win_rate,
+                ROUND(AVG(profit), 2) as avg_profit
+            FROM picks
+            WHERE won IS NOT NULL
+            GROUP BY market, league
+            ORDER BY win_rate DESC
+        """)
+        
+        stats = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        
+        return {
+            "status": "success",
+            "data": list(stats) if stats else []
+        }
+    except Exception as e:
+        logger.error(f"Error get_picks_summary: {e}")
+        return {"status": "error", "message": str(e)}, 500
+
+# ============================================================================
+# ROOT
+# ============================================================================
+
+@app.get("/")
+async def root():
     return {
-        "signals": DATA["live_signals"],
+        "app": "ATLAS Betting API",
+        "version": "1.0.0",
+        "status": "online",
+        "docs": "/docs",
         "timestamp": datetime.now().isoformat()
     }
 
-@app.get("/api/fantacalcio/formazione-ottimale")
-def get_formazione_ottimale(data: str = Query(None)):
-    """Restituisce la formazione fantacalcio ottimale"""
-    return {
-        "data": data,
-        "formazione": {
-            "portiere": None,
-            "difensori": [],
-            "centrocampisti": [],
-            "attaccanti": []
-        },
-        "info": "Funzione in sviluppo"
-    }
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
+# ============================================================================
+# FINE
+# ============================================================================
