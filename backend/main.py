@@ -18,7 +18,7 @@ load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 if not DATABASE_URL:
-    logger.error("❌ DATABASE_URL non configurato!")
+    logger.error("DATABASE_URL not configured")
     DATABASE_URL = "postgresql://postgres:xxxxx@roundhouse.proxy.rlwy.net:5432/railway"
 
 app = FastAPI(
@@ -27,7 +27,7 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS configuration
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -36,19 +36,113 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Database connection
+# Database
 def get_db_connection():
-    """Connessione al database PostgreSQL"""
     try:
         conn = psycopg2.connect(DATABASE_URL)
         return conn
     except Exception as e:
-        logger.error(f"❌ Errore connessione DB: {e}")
+        logger.error(f"DB Error: {e}")
         return None
 
-# Flag per tracciare se i dati sono già caricati
+# Flag per non ricaricare dati
 data_loaded = False
 
+# ============================================================================
+# CREA TABELLE
+# ============================================================================
+async def create_tables_if_not_exist():
+    """Crea le tabelle se non esistono"""
+    try:
+        conn = get_db_connection()
+        if not conn:
+            logger.error("Cannot connect to DB")
+            return False
+        
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS picks (
+            id SERIAL PRIMARY KEY,
+            date DATE,
+            league VARCHAR(50),
+            home VARCHAR(100),
+            away VARCHAR(100),
+            market VARCHAR(20),
+            pick VARCHAR(20),
+            prob SMALLINT,
+            odds NUMERIC(5,2),
+            value NUMERIC(5,2),
+            won BOOLEAN,
+            profit NUMERIC(6,2),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE TABLE IF NOT EXISTS giocatori (
+            id VARCHAR(20) PRIMARY KEY,
+            name VARCHAR(150),
+            team VARCHAR(100),
+            league VARCHAR(50),
+            position VARCHAR(5),
+            xg_avg_10 NUMERIC(4,2),
+            pai NUMERIC(4,2),
+            form_trend VARCHAR(20),
+            momentum_score SMALLINT,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE TABLE IF NOT EXISTS partite (
+            id SERIAL PRIMARY KEY,
+            date DATE,
+            league VARCHAR(50),
+            home VARCHAR(100),
+            away VARCHAR(100),
+            ft_total SMALLINT,
+            xg_total NUMERIC(5,2),
+            xg_home NUMERIC(5,2),
+            xg_away NUMERIC(5,2),
+            won BOOLEAN,
+            market VARCHAR(20),
+            pick VARCHAR(20),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE TABLE IF NOT EXISTS users (
+            id SERIAL PRIMARY KEY,
+            email VARCHAR(255) UNIQUE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE TABLE IF NOT EXISTS feedback (
+            id SERIAL PRIMARY KEY,
+            email VARCHAR(255),
+            comment TEXT,
+            rating SMALLINT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE TABLE IF NOT EXISTS donazioni (
+            id SERIAL PRIMARY KEY,
+            email VARCHAR(255),
+            amount NUMERIC(10,2),
+            stripe_payment_id VARCHAR(255),
+            status VARCHAR(20) DEFAULT 'completed',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        """)
+        
+        conn.commit()
+        logger.info("Tables created/verified")
+        cursor.close()
+        conn.close()
+        return True
+    except Exception as e:
+        logger.error(f"Table creation error: {e}")
+        return False
+
+# ============================================================================
+# CARICA DATI
+# ============================================================================
 async def load_initial_data():
     """Carica i dati da JSON al startup"""
     global data_loaded
@@ -57,11 +151,11 @@ async def load_initial_data():
         return
     
     try:
-        logger.info("⏳ Caricando dati iniziali...")
+        logger.info("Loading initial data...")
         
         conn = get_db_connection()
         if not conn:
-            logger.error("❌ Connessione DB fallita")
+            logger.error("Cannot connect to DB for data loading")
             return
         
         cursor = conn.cursor()
@@ -71,14 +165,14 @@ async def load_initial_data():
         picks_count = cursor.fetchone()[0]
         
         if picks_count > 0:
-            logger.info(f"✅ Database già popolato ({picks_count} picks)")
+            logger.info(f"Database already populated ({picks_count} picks)")
             data_loaded = True
             cursor.close()
             conn.close()
             return
         
         # Carica picks
-        logger.info("📊 Caricando picks...")
+        logger.info("Loading picks...")
         with open('/mnt/project/atlas_ml_master.json', 'r') as f:
             picks = json.load(f)
         
@@ -105,10 +199,10 @@ async def load_initial_data():
                 pass
         
         conn.commit()
-        logger.info(f"✅ Caricati {len(picks)} picks")
+        logger.info(f"Loaded {len(picks)} picks")
         
         # Carica giocatori
-        logger.info("👥 Caricando giocatori...")
+        logger.info("Loading players...")
         with open('/mnt/project/player_props_db.json', 'r') as f:
             players = json.load(f)
         
@@ -134,10 +228,10 @@ async def load_initial_data():
                 pass
         
         conn.commit()
-        logger.info(f"✅ Caricati {len(players)} giocatori")
+        logger.info(f"Loaded {len(players)} players")
         
         # Carica partite
-        logger.info("⚽ Caricando partite...")
+        logger.info("Loading matches...")
         with open('/mnt/user-data/uploads/atlas_ml_universe.json', 'r') as f:
             partite_list = json.load(f)
         
@@ -163,16 +257,16 @@ async def load_initial_data():
                 pass
         
         conn.commit()
-        logger.info(f"✅ Caricate {len(partite_list)} partite")
+        logger.info(f"Loaded {len(partite_list)} matches")
         
         cursor.close()
         conn.close()
         
         data_loaded = True
-        logger.info("🎉 Dati iniziali caricati!")
+        logger.info("All data loaded!")
         
     except Exception as e:
-        logger.error(f"❌ Errore caricamento dati: {e}")
+        logger.error(f"Data loading error: {e}")
 
 # ============================================================================
 # HEALTH CHECK
@@ -180,7 +274,6 @@ async def load_initial_data():
 
 @app.get("/health")
 async def health_check():
-    """Verifica che l'app sia online"""
     try:
         conn = get_db_connection()
         if conn:
@@ -196,16 +289,15 @@ async def health_check():
         return {"status": "unhealthy", "error": str(e)}, 500
 
 # ============================================================================
-# ENDPOINTS - PICKS
+# API - PICKS
 # ============================================================================
 
 @app.get("/api/picks")
 async def get_picks(league: str = None, market: str = None, limit: int = 100):
-    """Ritorna pick dal database"""
     try:
         conn = get_db_connection()
         if not conn:
-            return {"status": "error", "message": "Database non disponibile"}, 500
+            return {"status": "error", "message": "Database unavailable"}, 500
             
         cursor = conn.cursor(cursor_factory=RealDictCursor)
         
@@ -246,16 +338,15 @@ async def get_picks(league: str = None, market: str = None, limit: int = 100):
         return {"status": "error", "message": str(e)}, 500
 
 # ============================================================================
-# ENDPOINTS - GIOCATORI
+# API - GIOCATORI
 # ============================================================================
 
 @app.get("/api/giocatori")
 async def get_giocatori(team: str = None, position: str = None, limit: int = 50):
-    """Ritorna giocatori dal database"""
     try:
         conn = get_db_connection()
         if not conn:
-            return {"status": "error", "message": "Database non disponibile"}, 500
+            return {"status": "error", "message": "Database unavailable"}, 500
             
         cursor = conn.cursor(cursor_factory=RealDictCursor)
         
@@ -296,16 +387,15 @@ async def get_giocatori(team: str = None, position: str = None, limit: int = 50)
         return {"status": "error", "message": str(e)}, 500
 
 # ============================================================================
-# ENDPOINTS - PARTITE
+# API - PARTITE
 # ============================================================================
 
 @app.get("/api/partite")
 async def get_partite(league: str = None, limit: int = 100):
-    """Ritorna partite storiche dal database"""
     try:
         conn = get_db_connection()
         if not conn:
-            return {"status": "error", "message": "Database non disponibile"}, 500
+            return {"status": "error", "message": "Database unavailable"}, 500
             
         cursor = conn.cursor(cursor_factory=RealDictCursor)
         
@@ -336,16 +426,15 @@ async def get_partite(league: str = None, limit: int = 100):
         return {"status": "error", "message": str(e)}, 500
 
 # ============================================================================
-# ENDPOINTS - ANALYTICS
+# API - ANALYTICS
 # ============================================================================
 
 @app.get("/api/analytics/picks-summary")
 async def get_picks_summary():
-    """Riepilogo performance picks per market"""
     try:
         conn = get_db_connection()
         if not conn:
-            return {"status": "error", "message": "Database non disponibile"}, 500
+            return {"status": "error", "message": "Database unavailable"}, 500
             
         cursor = conn.cursor(cursor_factory=RealDictCursor)
         
@@ -390,15 +479,12 @@ async def root():
     }
 
 # ============================================================================
-# STARTUP - CARICA DATI
+# STARTUP
 # ============================================================================
 
 @app.on_event("startup")
 async def startup():
-    logger.info("🚀 ATLAS Betting API started")
-    logger.info(f"Environment: {ENVIRONMENT if 'ENVIRONMENT' in dir() else 'production'}")
+    logger.info("ATLAS Betting API starting...")
+    await create_tables_if_not_exist()
     await load_initial_data()
-
-# ============================================================================
-# FINE
-# ============================================================================
+    logger.info("ATLAS Betting API ready!")
