@@ -664,6 +664,93 @@ async def get_picks_summary():
     except Exception as e:
         logger.error(f"Analytics error: {e}")
         return {"status": "error", "message": str(e)}, 500
+@app.post("/api/admin/load-real-data")
+async def load_real_data():
+    """Carica i dati reali da atlas_ml_master.json e player_props_db.json"""
+    try:
+        import json
+        
+        # Carica dati dai file
+        with open('atlas_ml_master.json', 'r') as f:
+            picks_data = json.load(f)
+        
+        with open('player_props_db.json', 'r') as f:
+            players_data = json.load(f)
+        
+        conn = get_db_connection()
+        if not conn:
+            return {"status": "error", "message": "Database unavailable"}, 500
+        
+        cursor = conn.cursor()
+        
+        # Pulisci le tabelle
+        cursor.execute("DELETE FROM picks")
+        cursor.execute("DELETE FROM giocatori")
+        
+        # Inserisci i pick
+        for item in picks_data:
+            result = item.get('result', {})
+            cursor.execute("""
+                INSERT INTO picks (date, league, home, away, market, pick, prob, odds, value, won, profit)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (
+                item.get('date'),
+                item.get('league'),
+                item.get('home'),
+                item.get('away'),
+                item.get('market'),
+                item.get('pick'),
+                item.get('prob', 0),
+                item.get('odds', 0),
+                item.get('value', 0),
+                result.get('won', False),
+                result.get('profit', 0)
+            ))
+        
+        # Inserisci i giocatori
+        for player_id, player_data in players_data.items():
+            xg_history = player_data.get('match_xg_history', [])
+            xg_avg = sum(xg_history) / len(xg_history) if xg_history else 0
+            
+            rating_history = player_data.get('rating_history', [])
+            rating_avg = sum(rating_history) / len(rating_history) if rating_history else 0
+            
+            cursor.execute("""
+                INSERT INTO giocatori (id, name, team, league, position, xg_avg_10, pai, form_trend, momentum_score)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (id) DO UPDATE SET
+                    xg_avg_10 = EXCLUDED.xg_avg_10,
+                    pai = EXCLUDED.pai,
+                    form_trend = EXCLUDED.form_trend,
+                    momentum_score = EXCLUDED.momentum_score
+            """, (
+                str(player_id),
+                player_data.get('name'),
+                player_data.get('team'),
+                player_data.get('league'),
+                player_data.get('position'),
+                round(xg_avg, 2),
+                round(rating_avg / 10, 2),
+                'positive' if rating_avg > 6.5 else 'negative',
+                int(rating_avg * 10)
+            ))
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        logger.info(f"Dati reali caricati: {len(picks_data)} pick, {len(players_data)} giocatori")
+        
+        return {
+            "status": "success",
+            "picks_loaded": len(picks_data),
+            "players_loaded": len(players_data),
+            "message": "Dati reali caricati con successo!"
+        }
+    
+    except Exception as e:
+        logger.error(f"Load real data error: {e}")
+        return {"status": "error", "message": str(e)}, 500
 @app.get("/")
 async def root():
     return {
