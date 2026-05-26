@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
+import { BettingPicks } from './BettingPicks';
 
 function App() {
   const [activeTab, setActiveTab] = useState('betting');
@@ -130,26 +131,9 @@ function App() {
       <main className="content">
         {activeTab === 'betting' && (
           <section className="section">
-            <div style={{marginBottom: '40px', padding: '20px', backgroundColor: '#1a2332', borderRadius: '8px', border: '2px solid #00d4ff'}}>
-              <h2 style={{color: '#00d4ff', marginBottom: '20px'}}>🎯 CONSIGLIATISSIMO</h2>
-              {!picksToday ? (
-                <p style={{color: '#aaa'}}>Caricamento schedina...</p>
-              ) : picksToday.consigliatissimo?.schedina === 'SKIP' ? (
-                <div style={{padding: '15px', backgroundColor: '#2a3f4f', borderRadius: '6px'}}>
-                  <h3 style={{color: '#ff6b6b', marginTop: 0}}>🚫 {picksToday.consigliatissimo?.motivo}</h3>
-                  <p style={{color: '#ccc'}}>{picksToday.consigliatissimo?.recommendation}</p>
-                  <p style={{color: '#aaa', fontSize: '12px'}}>💰 Budget preservato: €{picksToday.consigliatissimo?.budget_preservato}</p>
-                </div>
-              ) : (
-                <div style={{padding: '15px', backgroundColor: '#2a3f4f', borderRadius: '6px'}}>
-                  <h3 style={{color: '#4ade80', marginTop: 0}}>✅ Schedina CONSIGLIATISSIMA</h3>
-                  <p style={{color: '#ccc'}}>Stake: €{picksToday.consigliatissimo?.stake}</p>
-                  <p style={{color: '#aaa', fontSize: '12px'}}>Quota: {picksToday.consigliatissimo?.quota_combinata}</p>
-                </div>
-              )}
-            </div>
-
-            <h2>📌 Pick Giornalieri</h2>
+            <BettingPicks API_URL={API_URL} />
+            
+            <h2 style={{marginTop: '40px'}}>📌 Storico Pick</h2>
             {loading ? (
               <p>Caricamento...</p>
             ) : picks.length === 0 ? (
