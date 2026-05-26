@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
-import { BettingPicks } from './BettingPicks';
 
 function App() {
   const [activeTab, setActiveTab] = useState('betting');
@@ -8,12 +7,13 @@ function App() {
   const [giocatori, setGiocatori] = useState([]);
   const [stats, setStats] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [picksToday, setPicksToday] = useState(null);
+  const [bettingTab, setBettingTab] = useState('consigliatissimo');
   const [donationAmount, setDonationAmount] = useState(10);
   const [donationEmail, setDonationEmail] = useState('');
   const [donationMessage, setDonationMessage] = useState('');
   const [donationLoading, setDonationLoading] = useState(false);
   const [donationSubmitted, setDonationSubmitted] = useState(false);
-  const [picksToday, setPicksToday] = useState(null);
 
   const API_URL = process.env.REACT_APP_API_URL || 'https://atlas-betting-production.up.railway.app';
 
@@ -131,14 +131,150 @@ function App() {
       <main className="content">
         {activeTab === 'betting' && (
           <section className="section">
-            {/* TABS BETTING */}
-            <div style={{display: 'flex', gap: '10px', marginBottom: '20px', borderBottom: '2px solid #2a3f4f', paddingBottom: '10px'}}>
-              <button onClick={() => setActiveTab('betting')} style={{padding: '10px 15px', backgroundColor: '#00d4ff', color: '#000', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold'}}>📌 Consigliatissimo</button>
-              <button onClick={() => setActiveTab('betting-varianti')} style={{padding: '10px 15px', backgroundColor: '#2a3f4f', color: '#aaa', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold'}}>⚙️ Varianti</button>
-              <button onClick={() => setActiveTab('betting-dettagli')} style={{padding: '10px 15px', backgroundColor: '#2a3f4f', color: '#aaa', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold'}}>🔍 Dettagli</button>
+            {/* CONSIGLIATISSIMO */}
+            <div style={{marginBottom: '40px', padding: '20px', backgroundColor: '#1a2332', borderRadius: '8px', border: '2px solid #00d4ff'}}>
+              <h2 style={{color: '#00d4ff', marginTop: 0}}>🎯 CONSIGLIATISSIMO — {picksToday?.data || 'Caricamento...'}</h2>
+              
+              {picksToday?.consigliatissimo?.schedina === 'SKIP' ? (
+                <div style={{padding: '15px', backgroundColor: '#2a3f4f', borderRadius: '6px', border: '2px solid #ff6b6b'}}>
+                  <h3 style={{color: '#ff6b6b', marginTop: 0}}>🚫 {picksToday.consigliatissimo.motivo}</h3>
+                  <p style={{color: '#ccc'}}>{picksToday.consigliatissimo.recommendation}</p>
+                  <p style={{color: '#aaa', fontSize: '12px'}}>💰 Budget preservato: €{picksToday.consigliatissimo.budget_preservato}</p>
+                </div>
+              ) : picksToday?.consigliatissimo ? (
+                <div style={{padding: '15px', backgroundColor: '#2a3f4f', borderRadius: '6px', border: '2px solid #4ade80'}}>
+                  <h3 style={{color: '#4ade80', marginTop: 0}}>✅ Schedina CONSIGLIATISSIMA</h3>
+                  <p style={{color: '#ccc'}}>Stake: €{picksToday.consigliatissimo.stake} | Quota: {picksToday.consigliatissimo.quota_combinata}</p>
+                  <p style={{color: '#aaa', fontSize: '12px'}}>Profitto atteso: +€{picksToday.consigliatissimo.profitto_atteso}</p>
+                </div>
+              ) : (
+                <p style={{color: '#aaa'}}>Caricamento schedina...</p>
+              )}
             </div>
 
-            <h2>📌 Pick Giornalieri</h2>            
+            {/* TABS BETTING */}
+            <div style={{display: 'flex', gap: '10px', marginBottom: '20px', borderBottom: '2px solid #2a3f4f', paddingBottom: '10px'}}>
+              <button 
+                onClick={() => setBettingTab('consigliatissimo')} 
+                style={{padding: '10px 15px', backgroundColor: bettingTab === 'consigliatissimo' ? '#00d4ff' : '#2a3f4f', color: bettingTab === 'consigliatissimo' ? '#000' : '#aaa', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold'}}
+              >
+                📌 Schedina
+              </button>
+              <button 
+                onClick={() => setBettingTab('varianti')} 
+                style={{padding: '10px 15px', backgroundColor: bettingTab === 'varianti' ? '#00d4ff' : '#2a3f4f', color: bettingTab === 'varianti' ? '#000' : '#aaa', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold'}}
+              >
+                ⚙️ Varianti
+              </button>
+              <button 
+                onClick={() => setBettingTab('dettagli')} 
+                style={{padding: '10px 15px', backgroundColor: bettingTab === 'dettagli' ? '#00d4ff' : '#2a3f4f', color: bettingTab === 'dettagli' ? '#000' : '#aaa', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold'}}
+              >
+                🔍 Dettagli
+              </button>
+              <button 
+                onClick={() => setBettingTab('stats')} 
+                style={{padding: '10px 15px', backgroundColor: bettingTab === 'stats' ? '#00d4ff' : '#2a3f4f', color: bettingTab === 'stats' ? '#000' : '#aaa', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold'}}
+              >
+                📊 Stats
+              </button>
+              <button 
+                onClick={() => setBettingTab('checklist')} 
+                style={{padding: '10px 15px', backgroundColor: bettingTab === 'checklist' ? '#00d4ff' : '#2a3f4f', color: bettingTab === 'checklist' ? '#000' : '#aaa', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold'}}
+              >
+                ✅ Checklist
+              </button>
+            </div>
+
+            {/* CONTENUTI TAB */}
+            {bettingTab === 'consigliatissimo' && (
+              <div style={{padding: '20px', backgroundColor: '#2a3f4f', borderRadius: '8px', marginBottom: '30px'}}>
+                <h3 style={{color: '#00d4ff'}}>Le gambe della schedina</h3>
+                {picksToday?.consigliatissimo?.schedina === 'SKIP' ? (
+                  <p style={{color: '#aaa'}}>Nessuna schedina disponibile oggi</p>
+                ) : picksToday?.consigliatissimo?.gambe ? (
+                  picksToday.consigliatissimo.gambe.map((gamba, idx) => (
+                    <div key={idx} style={{padding: '10px', backgroundColor: '#1a2332', borderRadius: '4px', marginBottom: '10px', borderLeft: '3px solid #00d4ff'}}>
+                      <p style={{color: '#fff', fontWeight: 'bold', margin: '0 0 5px 0'}}>{idx + 1}. {gamba.partita}</p>
+                      <p style={{color: '#4ade80', margin: '0 0 5px 0'}}>Quota: {gamba.quota} | Prob: {gamba.probabilita}%</p>
+                      <p style={{color: '#ccc', margin: 0}}>{gamba.mercato}</p>
+                    </div>
+                  ))
+                ) : (
+                  <p style={{color: '#aaa'}}>Caricamento...</p>
+                )}
+              </div>
+            )}
+
+            {bettingTab === 'varianti' && (
+              <div style={{padding: '20px', backgroundColor: '#2a3f4f', borderRadius: '8px', marginBottom: '30px'}}>
+                <h3 style={{color: '#00d4ff'}}>Varianti disponibili</h3>
+                {picksToday?.varianti && picksToday.varianti.length > 0 ? (
+                  picksToday.varianti.map((v, idx) => (
+                    <div key={idx} style={{padding: '10px', backgroundColor: '#1a2332', borderRadius: '4px', marginBottom: '10px'}}>
+                      <p style={{color: '#4ade80', fontWeight: 'bold', margin: '0 0 5px 0'}}>{v.nome}</p>
+                      <p style={{color: '#ccc', margin: '0 0 5px 0'}}>{v.descrizione}</p>
+                      <p style={{color: '#aaa', margin: 0}}>Stake: €{v.stake} | Quota: {v.quota_combinata} | WR: {v.wr}%</p>
+                    </div>
+                  ))
+                ) : (
+                  <p style={{color: '#aaa'}}>Nessuna variante disponibile</p>
+                )}
+              </div>
+            )}
+
+            {bettingTab === 'dettagli' && (
+              <div style={{padding: '20px', backgroundColor: '#2a3f4f', borderRadius: '8px', marginBottom: '30px'}}>
+                <h3 style={{color: '#00d4ff'}}>Analisi tecnica</h3>
+                {picksToday?.dettagli_pattern ? (
+                  <div>
+                    {picksToday.dettagli_pattern.xg_pattern && (
+                      <div style={{padding: '10px', backgroundColor: '#1a2332', borderRadius: '4px', marginBottom: '10px'}}>
+                        <p style={{color: '#facc15', fontWeight: 'bold'}}>⚽ Pattern xG</p>
+                        <p style={{color: '#ccc', margin: '0'}}>WR {picksToday.dettagli_pattern.xg_pattern.wr}% | ROI +{picksToday.dettagli_pattern.xg_pattern.roi}%</p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p style={{color: '#aaa'}}>Nessun dettaglio disponibile</p>
+                )}
+              </div>
+            )}
+
+            {bettingTab === 'stats' && (
+              <div style={{padding: '20px', backgroundColor: '#2a3f4f', borderRadius: '8px', marginBottom: '30px'}}>
+                <h3 style={{color: '#00d4ff'}}>Statistiche giornaliere</h3>
+                {picksToday?.statistiche_giornaliere ? (
+                  <div>
+                    <p style={{color: '#ccc'}}>Pick P1: {picksToday.statistiche_giornaliere.pick_p1_disponibili || 0}</p>
+                    <p style={{color: '#ccc'}}>Pick P2: {picksToday.statistiche_giornaliere.pick_p2_disponibili || 0}</p>
+                    <p style={{color: '#facc15'}}>ROI Potenziale: +{picksToday.statistiche_giornaliere.roi_potenziale_medio || 0}%</p>
+                    <p style={{color: '#ff9800'}}>Budget Preservato: €{picksToday.statistiche_giornaliere.budget_preservato || 0}</p>
+                  </div>
+                ) : (
+                  <p style={{color: '#aaa'}}>Nessuna statistica disponibile</p>
+                )}
+              </div>
+            )}
+
+            {bettingTab === 'checklist' && (
+              <div style={{padding: '20px', backgroundColor: '#2a3f4f', borderRadius: '8px', marginBottom: '30px'}}>
+                <h3 style={{color: '#00d4ff'}}>✅ Checklist ATLAS</h3>
+                {picksToday?.checklist_finale ? (
+                  <div>
+                    {Object.entries(picksToday.checklist_finale).map(([check, status]) => (
+                      <div key={check} style={{padding: '8px', marginBottom: '5px', backgroundColor: '#1a2332', borderRadius: '4px', display: 'flex', justifyContent: 'space-between'}}>
+                        <span style={{color: '#ccc'}}>{check.replace(/_/g, ' ')}</span>
+                        <span style={{color: status?.includes('✅') ? '#4ade80' : '#ff6b6b', fontWeight: 'bold'}}>{status}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p style={{color: '#aaa'}}>Nessun checklist disponibile</p>
+                )}
+              </div>
+            )}
+
             <h2 style={{marginTop: '40px'}}>📌 Storico Pick</h2>
             {loading ? (
               <p>Caricamento...</p>
@@ -354,6 +490,5 @@ function App() {
     </div>
   );
 }
-return (
-  <div className="app"> {/* REBUILD VERCEL */}
+
 export default App;
