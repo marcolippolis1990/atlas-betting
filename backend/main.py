@@ -664,7 +664,7 @@ async def get_picks_summary():
     except Exception as e:
         logger.error(f"Analytics error: {e}")
         return {"status": "error", "message": str(e)}, 500
-@app.post("/api/admin/load-real-data")
+@app.get("/api/admin/load-real-data")
 async def load_real_data():
     """Carica i dati reali da atlas_ml_master.json e player_props_db.json"""
     try:
