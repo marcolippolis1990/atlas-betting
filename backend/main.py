@@ -6,6 +6,8 @@ import psycopg2
 from psycopg2.extras import RealDictCursor, execute_batch
 from dotenv import load_dotenv
 from datetime import datetime
+from pathlib import Path
+from datetime import datetime
 import logging
 import json
 
@@ -561,7 +563,39 @@ async def load_batch_data(picks: list[PickData] = [], players: list[PlayerData] 
     except Exception as e:
         logger.error(f"Batch load error: {e}")
         return {"status": "error", "message": str(e)}, 500
+# ============================================================================
+# API - PICKS TODAY
+# ============================================================================
 
+@app.get("/api/picks-today")
+async def get_picks_today():
+    """
+    Legge il file picks più recente dalla cartella /backend/data/picks/
+    Formato file: picks_YYYY-MM-DD.json
+    """
+    picks_dir = Path("backend/data/picks")
+    
+    # Se la cartella non esiste, creala
+    picks_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Trova tutti i file picks_*.json
+    pick_files = list(picks_dir.glob("picks_*.json"))
+    
+    if not pick_files:
+        return {
+            "error": "Nessun pick disponibile oggi",
+            "message": "Salva un file picks_YYYY-MM-DD.json in /backend/data/picks/"
+        }
+    
+    # Prendi il file più recente
+    latest_file = sorted(pick_files)[-1]
+    
+    try:
+        with open(latest_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        return data
+    except Exception as e:
+        return {"error": f"Errore lettura file: {str(e)}"}
 # ============================================================================
 # ROOT
 # ============================================================================
