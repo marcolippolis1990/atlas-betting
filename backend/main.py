@@ -671,10 +671,10 @@ async def load_real_data():
         import json
         
         # Carica dati dai file
-        with open('atlas_ml_master.json', 'r') as f:
+        with open('./atlas_ml_master.json', 'r') as f:
             picks_data = json.load(f)
         
-        with open('player_props_db.json', 'r') as f:
+        with open('./player_props_db.json', 'r') as f:
             players_data = json.load(f)
         
         conn = get_db_connection()
