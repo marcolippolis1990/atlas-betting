@@ -7,10 +7,10 @@
   "consigliatissimo": {
     "schedina": "PRINCIPALE",
     "stake": 10,
-    "quota_combinata": 2.07,
-    "profitto_atteso": 10.70,
+    "quota_combinata": 2.64,
+    "profitto_atteso": 16.40,
     "wr_storico": 69.0,
-    "risk_level": "BASSO",
+    "risk_level": "MEDIO",
     "gambe": [
       {
         "id": 1,
@@ -32,16 +32,16 @@
             "forza": "MASSIMA"
           },
           {
+            "segnale": "H2H Under",
+            "valore": 80.4,
+            "partite": 13,
+            "forza": "ALTA"
+          },
+          {
             "segnale": "PAI home",
             "valore": 0.51,
             "giocatore_assente": "Immobile",
             "forza": "ALTA"
-          },
-          {
-            "segnale": "Movimento quote",
-            "valore": -3.5,
-            "interpretazione": "sharp money su Under",
-            "forza": "MEDIA"
           }
         ],
         "contesto": {
@@ -101,19 +101,13 @@
         "lega": "Serie A",
         "lega_tier": "P2",
         "mercato": "Goal in 1T",
-        "quota": 1.32,
+        "quota": 1.55,
         "probabilita": 72.0,
         "valore": 3.1,
         "pick_type": "G1T",
         "segnali_forti": [
           {
-            "segnale": "Serie A G1T",
-            "valore": 67.4,
-            "wr": 67.4,
-            "forza": "MEDIA"
-          },
-          {
-            "segnale": "xG 1T",
+            "segnale": "xG 1T home",
             "valore": 1.12,
             "wr": 71.0,
             "forza": "MEDIA"
@@ -133,87 +127,355 @@
   },
   "varianti": [
     {
-      "nome": "DUO SICURA (2 Under)",
-      "descrizione": "Le due partite più affidabili di Serie A",
+      "nome": "DUO SICURA (2 Under Serie A)",
+      "descrizione": "Le due partite più affidabili con xG < 2.7 e H2H Under altissimi",
       "gambe": [1, 2],
       "stake": 10,
       "quota_combinata": 2.00,
       "profitto_atteso": 10.00,
-      "wr": 72.0,
+      "wr": 82.0,
       "risk_level": "BASSO",
-      "quando_sceglierla": "Se non vuoi rischiare sulla G1T"
+      "quando_sceglierla": "Se vuoi massima sicurezza. Serie A OU35 WR 75%, ROI -1.7%"
     },
     {
-      "nome": "SINGOLA FORTE (xG < 2.7)",
-      "descrizione": "Pattern xG < 2.7 con WR 86.3% su 219 partite",
+      "nome": "SINGOLA xG < 2.7",
+      "descrizione": "Pattern xG < 2.7 con WR 86.3% su 219 partite — il segnale più affidabile del sistema",
       "gambe": [1],
       "stake": 5,
       "quota_combinata": 1.45,
       "profitto_atteso": 2.25,
       "wr": 86.3,
       "risk_level": "BASSISSIMO",
-      "quando_sceglierla": "Se vuoi massima sicurezza con valore basso"
+      "quando_sceglierla": "Massima sicurezza con valore basso. Best performer assoluto"
     },
     {
-      "nome": "TRIPLA AGGRESSIVA (3 gambe)",
-      "descrizione": "Schedina consigliata - massimo profitto potenziale",
+      "nome": "TRIPLA PRINCIPALE (3 gambe)",
+      "descrizione": "La schedina consigliata — massimo profitto potenziale con WR medio 79%",
       "gambe": [1, 2, 3],
       "stake": 15,
-      "quota_combinata": 2.07,
-      "profitto_atteso": 15.70,
-      "wr": 68.0,
+      "quota_combinata": 2.64,
+      "profitto_atteso": 16.40,
+      "wr": 78.0,
       "risk_level": "MEDIO",
-      "quando_sceglierla": "Se sei sicuro e vuoi massimo profitto"
+      "quando_sceglierla": "Bilanciamento perfetto tra rischio e reward. G1T Juventus aggiunge valore"
+    },
+    {
+      "nome": "EUROPEAN WEEK BOOST",
+      "descrizione": "In settimana europea OU35 sfrutta il pattern: WR 84.6%, ROI +16.5%",
+      "gambe": [1, 2],
+      "stake": 8,
+      "quota_combinata": 2.00,
+      "profitto_atteso": 8.00,
+      "wr": 84.6,
+      "risk_level": "BASSO",
+      "quando_sceglierla": "Se today è European Week. Storico conferma: +16.5% ROI su 13 pick"
     }
   ],
-  "dettagli_pattern": {
-    "xg_pattern": {
-      "nome": "xG < 2.7",
-      "wr": 86.3,
-      "partite_backtest": 219,
-      "roi": 15.3,
-      "partite_oggi": 2
-    },
-    "h2h_pattern": {
-      "lazio_roma": {
-        "partite": 13,
-        "under_35": "80.4%",
-        "avg_gol": 2.31
+  "stats_dettagliate": {
+    "performance_leghe": [
+      {
+        "lega": "La Liga",
+        "n": 29,
+        "wr": 72.4,
+        "roi": 2.4,
+        "status": "P1 — Prima scelta",
+        "mercati": ["OU35", "OU15"]
       },
-      "napoli_lecce": {
-        "partite": 8,
-        "under_35": "75.0%",
-        "avg_gol": 2.38
+      {
+        "lega": "Serie A",
+        "n": 33,
+        "wr": 75.8,
+        "roi": -0.8,
+        "status": "P2 — Seconda scelta",
+        "mercati": ["OU35", "G1T", "DC"]
+      },
+      {
+        "lega": "Championship",
+        "n": 58,
+        "wr": 69.0,
+        "roi": -5.5,
+        "status": "P1 — Prima scelta",
+        "mercati": ["OU35"]
+      },
+      {
+        "lega": "Premier League",
+        "n": 24,
+        "wr": 66.7,
+        "roi": -2.7,
+        "status": "P2 — Seconda scelta",
+        "mercati": ["OU35"]
+      },
+      {
+        "lega": "Europa League",
+        "n": 10,
+        "wr": 80.0,
+        "roi": 6.8,
+        "status": "P2 — Solo OU35 EW",
+        "mercati": ["OU35"]
+      },
+      {
+        "lega": "Conference League",
+        "n": 18,
+        "wr": 66.7,
+        "roi": -3.3,
+        "status": "P3 — Solo OU35 knockout",
+        "mercati": ["OU35"]
+      },
+      {
+        "lega": "Champions League",
+        "n": 18,
+        "wr": 61.1,
+        "roi": 0.9,
+        "status": "SKIP — salvo PAI eccezioni",
+        "mercati": ["OU35"]
+      },
+      {
+        "lega": "Bundesliga",
+        "n": 18,
+        "wr": 72.2,
+        "roi": -2.4,
+        "status": "SKIP — in simulazione",
+        "mercati": ["OU35"]
       }
-    },
-    "consensus_pattern": {
-      "atlas_3_3": {
-        "conteggio": 2,
-        "wr": 72.1
+    ],
+    "performance_mercati": [
+      {
+        "mercato": "OU35 U3.5",
+        "n": 183,
+        "wr": 71.0,
+        "roi": -0.4,
+        "regola": "Mercato principale — gioca sempre se lega buona + prob >= 70%",
+        "best_lega": "Championship OU35: WR 84.2%, ROI +14.7% (N=38)"
       },
-      "v5high_accordo": true
-    }
-  },
-  "statistiche_giornaliere": {
-    "pick_p1_disponibili": 0,
-    "pick_p2_disponibili": 3,
-    "pick_p3_disponibili": 0,
-    "mercati": {
-      "OU35": 2,
-      "G1T": 1
-    },
-    "roi_potenziale_medio": 14.8,
-    "budget_preservato": 10
-  },
-  "checklist_finale": {
-    "filtro_leghe": "✅ P1/P2 OK",
-    "filtro_mercati": "✅ OU35 + G1T Atlas 3/3",
-    "consensus": "✅ Atlas + V5High accordo",
-    "pai_verificato": "✅ Formazioni controllate",
-    "quota_minima": "✅ Tutte >= 1.30",
-    "max_3_gambe": "✅ 3 gambe",
-    "stake_totale": "✅ €20 < €30",
-    "pick_validi": "✅ 4 pick distinti"
+      {
+        "mercato": "BTTS",
+        "n": 7,
+        "wr": 85.7,
+        "roi": 41.9,
+        "regola": "Solo consensus Atlas + contesto favorevole",
+        "best_contesto": "13+ infortuni + BTTS: WR 100%, ROI +62.7% (N=4)"
+      },
+      {
+        "mercato": "DC 1X/X2",
+        "n": 27,
+        "wr": 55.6,
+        "roi": -11.2,
+        "regola": "Solo Atlas consensus 2/3 o 3/3 — DC solo V5High = SKIP",
+        "best_contesto": "Serie A + DC: WR 100%, ROI +12.9% (N=3)"
+      },
+      {
+        "mercato": "OU15 O1.5",
+        "n": 77,
+        "wr": 68.8,
+        "roi": -6.7,
+        "regola": "Solo La Liga prob >= 75% + quota >= 1.25. STOP Championship/PL",
+        "best_contesto": "Serie B + OU15: WR 78.6%, ROI +7.2% (N=14)"
+      },
+      {
+        "mercato": "G1T",
+        "n": 50,
+        "wr": 56.0,
+        "roi": -29.5,
+        "regola": "VIETATO Championship/La Liga/Serie B. Solo Serie A + PL con Atlas 3/3",
+        "best_contesto": "La Liga G1T: WR 84.8% storicamente — ma attualmente evitare"
+      }
+    ],
+    "per_lega_mercato": [
+      {
+        "lega": "Championship",
+        "mercato": "OU35",
+        "wr": 84.2,
+        "roi": 14.7,
+        "n": 38,
+        "status": "✅ BEST PERFORMER",
+        "note": "WR più alto del sistema. ROI positivo confermato."
+      },
+      {
+        "lega": "European Week",
+        "mercato": "OU35",
+        "wr": 84.6,
+        "roi": 16.5,
+        "n": 13,
+        "status": "✅ BOOST SETTIMANALE",
+        "note": "Quando è European Week, OU35 sfrutta il pattern massimamente"
+      },
+      {
+        "lega": "13+ infortuni",
+        "mercato": "BTTS",
+        "wr": 100.0,
+        "roi": 62.7,
+        "n": 4,
+        "status": "✅ RARO MA DEVASTANTE",
+        "note": "Quando molti assenti, BTTS diventa esplosivo. Backtest confermato."
+      },
+      {
+        "lega": "5-8 infortuni",
+        "mercato": "OU35",
+        "wr": 100.0,
+        "roi": 55.0,
+        "n": 3,
+        "status": "✅ PATTERN ORO",
+        "note": "Fascia critica: squadre sbilanciate. Under 100% WR."
+      },
+      {
+        "lega": "Serie A",
+        "mercato": "OU35",
+        "wr": 75.0,
+        "roi": -1.7,
+        "n": 16,
+        "status": "⚠️ WR ALTO, ROI BASSO",
+        "note": "Quote spesso basse. Gioca solo con quota >= 1.30"
+      }
+    ],
+    "pattern_operativi": [
+      {
+        "nome": "0-0 al 45'",
+        "wr": 93.7,
+        "partite": 63,
+        "descrizione": "Se primo tempo senza gol, Under 3.5 vince quasi sempre",
+        "best_leghe": ["Championship (100%)", "La Liga (100%)", "Europa League (100%)"],
+        "applicazione": "Live dal 46' — gamba P1: 100% WR"
+      },
+      {
+        "nome": "xG < 2.7",
+        "wr": 86.3,
+        "partite": 219,
+        "descrizione": "Il segnale pre-partita più affidabile del sistema",
+        "delta": "-33.5% vs xG > 2.7 (52.8% WR)",
+        "applicazione": "Pre-partita P1 — gioca sempre U3.5 singola 5 EUR se xG < 2.7"
+      },
+      {
+        "nome": "SOT <= 9 totali",
+        "wr": 83.7,
+        "partite": 219,
+        "descrizione": "Tiri in porta bassi = scoring potenziale basso",
+        "delta": "-35.4% vs SOT > 9 (48.3% WR)",
+        "applicazione": "Live dal 60' — conferma Under o uscita se SOT sale"
+      },
+      {
+        "nome": "Corners > 9",
+        "wr": 75.0,
+        "partite": "variabile",
+        "descrizione": "Molti corner ma pochi gol = pressione senza concretizzazione",
+        "delta": "+10.6% vs corners <= 9 (64.4% WR)",
+        "applicazione": "Live — conferma Under nonostante pressione offensiva"
+      }
+    ],
+    "sintesi_roi_positivo": [
+      {
+        "contesto": "13+ infortuni + BTTS",
+        "wr": 100.0,
+        "roi": 62.7,
+        "n": 4,
+        "ranking": "🥇 MIGLIORE"
+      },
+      {
+        "contesto": "5-8 infortuni + OU35",
+        "wr": 100.0,
+        "roi": 55.0,
+        "n": 3,
+        "ranking": "🥇 MIGLIORE"
+      },
+      {
+        "contesto": "Settimana normale + BTTS",
+        "wr": 85.7,
+        "roi": 41.9,
+        "n": 7,
+        "ranking": "🥈 OTTIMO"
+      },
+      {
+        "contesto": "European week + OU35",
+        "wr": 84.6,
+        "roi": 16.5,
+        "n": 13,
+        "ranking": "🥈 OTTIMO"
+      },
+      {
+        "contesto": "Championship + OU35",
+        "wr": 84.2,
+        "roi": 14.7,
+        "n": 38,
+        "ranking": "🥈 OTTIMO"
+      },
+      {
+        "contesto": "5-8 infortuni + DC",
+        "wr": 80.0,
+        "roi": 15.4,
+        "n": 5,
+        "ranking": "🥉 BUONO"
+      },
+      {
+        "contesto": "Serie A + DC",
+        "wr": 100.0,
+        "roi": 12.9,
+        "n": 3,
+        "ranking": "🥉 BUONO"
+      },
+      {
+        "contesto": "13+ infortuni + OU35",
+        "wr": 70.4,
+        "roi": 1.2,
+        "n": 108,
+        "ranking": "POSITIVO"
+      }
+    ],
+    "formazioni_top": [
+      {
+        "formazione": "4-3-3",
+        "n_totale": 302,
+        "wr_medio": 47.0,
+        "note": "Formazione offensiva — tendenza Over"
+      },
+      {
+        "formazione": "4-5-1",
+        "n_totale": 1032,
+        "wr_medio": 44.5,
+        "note": "Più usata del sistema. WR medio basso."
+      },
+      {
+        "formazione": "3-5-2",
+        "n_totale": 381,
+        "wr_medio": 39.9,
+        "note": "Difensiva — tendenza Under"
+      }
+    ],
+    "european_week_variations": [
+      {
+        "squadra": "Rennes",
+        "normale": "3-5-2 WR=44%",
+        "eur_week": "4-4-2 WR=100%",
+        "delta_gol": "+1.8",
+        "nota": "Massima variazione positiva"
+      },
+      {
+        "squadra": "RB Leipzig",
+        "normale": "4-3-3 WR=56%",
+        "eur_week": "4-3-3 WR=100%",
+        "delta_gol": "+1.4",
+        "nota": "Stessa formazione, WR raddoppiato"
+      },
+      {
+        "squadra": "Pescara",
+        "normale": "3-4-3 WR=12%",
+        "eur_week": "4-5-1 WR=67%",
+        "delta_gol": "+1.5",
+        "nota": "Cambio totale in EW"
+      },
+      {
+        "squadra": "Chelsea",
+        "normale": "4-5-1 WR=44%",
+        "eur_week": "4-5-1 WR=0%",
+        "delta_gol": "-1.5",
+        "nota": "Peggior variazione negativa"
+      },
+      {
+        "squadra": "Barcelona",
+        "normale": "4-5-1 WR=76%",
+        "eur_week": "4-5-1 WR=60%",
+        "delta_gol": "-1.2",
+        "nota": "Formazione stessa, WR scende"
+      }
+    ]
   },
   "skip": {}
 }
