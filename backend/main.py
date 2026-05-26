@@ -387,7 +387,7 @@ async def get_picks_summary():
     try:
         conn = get_db_connection()
         if not conn:
-            return {"status": "error"}, 500
+            return {"status": "error", "data": []}
         
         cursor = conn.cursor()
         cursor.execute("""
@@ -398,31 +398,34 @@ async def get_picks_summary():
                 ROUND(SUM(CASE WHEN won = true THEN 1 ELSE 0 END)::float / NULLIF(COUNT(*), 0) * 100, 1) as win_rate,
                 ROUND(AVG(profit), 2) as avg_profit
             FROM picks
+            WHERE market IS NOT NULL AND league IS NOT NULL
             GROUP BY market, league
             ORDER BY total_picks DESC
+            LIMIT 10
         """)
         
         rows = cursor.fetchall()
+        data = []
         
-        data = [
-            {
-                "market": r[0],
-                "league": r[1],
-                "total_picks": r[2],
-                "win_rate": r[3] or 0,
-                "avg_profit": r[4] or 0
-            }
-            for r in rows
-        ]
+        if rows:
+            for r in rows:
+                data.append({
+                    "market": str(r[0]) if r[0] else "Unknown",
+                    "league": str(r[1]) if r[1] else "Unknown",
+                    "total_picks": int(r[2]) if r[2] else 0,
+                    "win_rate": float(r[3]) if r[3] else 0,
+                    "avg_profit": float(r[4]) if r[4] else 0
+                })
         
         cursor.close()
         conn.close()
         
+        logger.info(f"Analytics: {len(data)} records")
         return {"status": "success", "data": data}
     except Exception as e:
-        logger.error(f"Error: {e}")
-        return {"status": "error"}, 500
-
+        logger.error(f"Analytics error: {e}")
+        return {"status": "success", "data": []}
+        
 @app.post("/api/donazioni")
 async def create_donation(donation: DonationData):
     """Salva una donazione"""
