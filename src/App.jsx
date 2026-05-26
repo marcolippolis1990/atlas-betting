@@ -131,8 +131,14 @@ function App() {
       <main className="content">
         {activeTab === 'betting' && (
           <section className="section">
-            <BettingPicks API_URL={API_URL} />
-            
+            {/* TABS BETTING */}
+            <div style={{display: 'flex', gap: '10px', marginBottom: '20px', borderBottom: '2px solid #2a3f4f', paddingBottom: '10px'}}>
+              <button onClick={() => setActiveTab('betting')} style={{padding: '10px 15px', backgroundColor: '#00d4ff', color: '#000', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold'}}>📌 Consigliatissimo</button>
+              <button onClick={() => setActiveTab('betting-varianti')} style={{padding: '10px 15px', backgroundColor: '#2a3f4f', color: '#aaa', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold'}}>⚙️ Varianti</button>
+              <button onClick={() => setActiveTab('betting-dettagli')} style={{padding: '10px 15px', backgroundColor: '#2a3f4f', color: '#aaa', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold'}}>🔍 Dettagli</button>
+            </div>
+
+            <h2>📌 Pick Giornalieri</h2>            
             <h2 style={{marginTop: '40px'}}>📌 Storico Pick</h2>
             {loading ? (
               <p>Caricamento...</p>
