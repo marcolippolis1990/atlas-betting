@@ -1,0 +1,24 @@
+{
+  "data": "2026-04-20",
+  "consigliatissimo": {
+    "schedina": "SKIP",
+    "motivo": "Nessun pick valido secondo le regole ATLAS",
+    "dettagli": [
+      "Atlas: 0 pick disponibili (no leghe operative)",
+      "V5High OU15 O1.5: vietato in Premier League",
+      "V5High G1T: vietato in PL senza Atlas 3/3"
+    ],
+    "budget_preservato": 30.0,
+    "recommendation": "Giorno di riposo - no scommesse"
+  },
+  "varianti": [],
+  "skip": {
+    "Premier League": "Mercati proposti vietati per regola",
+    "Atlas": "Nessun pick generato dai modelli"
+  },
+  "stats": {
+    "leghe_analizzate": 0,
+    "pick_totali": 0,
+    "stake_totale": 0.0
+  }
+}
