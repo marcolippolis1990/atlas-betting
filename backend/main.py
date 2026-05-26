@@ -500,7 +500,20 @@ async def root():
 # ============================================================================
 # STARTUP
 # ============================================================================
-
+@app.get("/test-data")
+async def test_data():
+    """Test endpoint per verificare i dati"""
+    conn = get_db_connection()
+    if not conn:
+        return {"error": "No DB"}
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(*) FROM picks")
+    picks_count = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM giocatori")
+    players_count = cursor.fetchone()[0]
+    cursor.close()
+    conn.close()
+    return {"picks": picks_count, "players": players_count}
 @app.on_event("startup")
 async def startup_event():
     """Al startup del server"""
