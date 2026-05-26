@@ -1,0 +1,219 @@
+{
+  "data": "2026-05-28",
+  "metadata": {
+    "generated_at": "2026-05-28T08:30:00Z",
+    "system_version": "atlas_v3.2"
+  },
+  "consigliatissimo": {
+    "schedina": "PRINCIPALE",
+    "stake": 10,
+    "quota_combinata": 2.07,
+    "profitto_atteso": 10.70,
+    "wr_storico": 69.0,
+    "risk_level": "BASSO",
+    "gambe": [
+      {
+        "id": 1,
+        "partita": "Lazio vs Roma",
+        "data": "2026-05-28",
+        "ora": "19:00",
+        "lega": "Serie A",
+        "lega_tier": "P2",
+        "mercato": "Under 3.5",
+        "quota": 1.45,
+        "probabilita": 79.0,
+        "valore": 4.7,
+        "pick_type": "OU35",
+        "segnali_forti": [
+          {
+            "segnale": "xG totale",
+            "valore": 2.31,
+            "wr": 86.3,
+            "forza": "MASSIMA"
+          },
+          {
+            "segnale": "PAI home",
+            "valore": 0.51,
+            "giocatore_assente": "Immobile",
+            "forza": "ALTA"
+          },
+          {
+            "segnale": "Movimento quote",
+            "valore": -3.5,
+            "interpretazione": "sharp money su Under",
+            "forza": "MEDIA"
+          }
+        ],
+        "contesto": {
+          "h2h": {
+            "partite": 13,
+            "under_pct": 80.4,
+            "avg_gol": 2.31
+          },
+          "giorno_settimana": "Mercoledì",
+          "forma_home": "WWWLW",
+          "forma_away": "WDLDL"
+        },
+        "warning": null
+      },
+      {
+        "id": 2,
+        "partita": "Napoli vs Lecce",
+        "data": "2026-05-28",
+        "ora": "20:00",
+        "lega": "Serie A",
+        "lega_tier": "P2",
+        "mercato": "Under 3.5",
+        "quota": 1.38,
+        "probabilita": 77.0,
+        "valore": 3.9,
+        "pick_type": "OU35",
+        "segnali_forti": [
+          {
+            "segnale": "xG totale",
+            "valore": 2.45,
+            "wr": 86.3,
+            "forza": "MASSIMA"
+          },
+          {
+            "segnale": "H2H Under",
+            "valore": 75.0,
+            "partite": 8,
+            "forza": "ALTA"
+          }
+        ],
+        "contesto": {
+          "h2h": {
+            "partite": 8,
+            "under_pct": 75.0,
+            "avg_gol": 2.38
+          },
+          "forma_home": "WWWWW",
+          "forma_away": "LLLLD"
+        },
+        "warning": "Top 3 vs Bottom 3: partita tattica"
+      },
+      {
+        "id": 3,
+        "partita": "Juventus vs Monza",
+        "data": "2026-05-28",
+        "ora": "18:00",
+        "lega": "Serie A",
+        "lega_tier": "P2",
+        "mercato": "Goal in 1T",
+        "quota": 1.32,
+        "probabilita": 72.0,
+        "valore": 3.1,
+        "pick_type": "G1T",
+        "segnali_forti": [
+          {
+            "segnale": "Serie A G1T",
+            "valore": 67.4,
+            "wr": 67.4,
+            "forza": "MEDIA"
+          },
+          {
+            "segnale": "xG 1T",
+            "valore": 1.12,
+            "wr": 71.0,
+            "forza": "MEDIA"
+          }
+        ],
+        "contesto": {
+          "h2h": {
+            "partite": 5,
+            "g1t_pct": 80.0
+          },
+          "forma_home": "WWWWW",
+          "forma_away": "LDLDL"
+        },
+        "warning": null
+      }
+    ]
+  },
+  "varianti": [
+    {
+      "nome": "DUO SICURA (2 Under)",
+      "descrizione": "Le due partite più affidabili di Serie A",
+      "gambe": [1, 2],
+      "stake": 10,
+      "quota_combinata": 2.00,
+      "profitto_atteso": 10.00,
+      "wr": 72.0,
+      "risk_level": "BASSO",
+      "quando_sceglierla": "Se non vuoi rischiare sulla G1T"
+    },
+    {
+      "nome": "SINGOLA FORTE (xG < 2.7)",
+      "descrizione": "Pattern xG < 2.7 con WR 86.3% su 219 partite",
+      "gambe": [1],
+      "stake": 5,
+      "quota_combinata": 1.45,
+      "profitto_atteso": 2.25,
+      "wr": 86.3,
+      "risk_level": "BASSISSIMO",
+      "quando_sceglierla": "Se vuoi massima sicurezza con valore basso"
+    },
+    {
+      "nome": "TRIPLA AGGRESSIVA (3 gambe)",
+      "descrizione": "Schedina consigliata - massimo profitto potenziale",
+      "gambe": [1, 2, 3],
+      "stake": 15,
+      "quota_combinata": 2.07,
+      "profitto_atteso": 15.70,
+      "wr": 68.0,
+      "risk_level": "MEDIO",
+      "quando_sceglierla": "Se sei sicuro e vuoi massimo profitto"
+    }
+  ],
+  "dettagli_pattern": {
+    "xg_pattern": {
+      "nome": "xG < 2.7",
+      "wr": 86.3,
+      "partite_backtest": 219,
+      "roi": 15.3,
+      "partite_oggi": 2
+    },
+    "h2h_pattern": {
+      "lazio_roma": {
+        "partite": 13,
+        "under_35": "80.4%",
+        "avg_gol": 2.31
+      },
+      "napoli_lecce": {
+        "partite": 8,
+        "under_35": "75.0%",
+        "avg_gol": 2.38
+      }
+    },
+    "consensus_pattern": {
+      "atlas_3_3": {
+        "conteggio": 2,
+        "wr": 72.1
+      },
+      "v5high_accordo": true
+    }
+  },
+  "statistiche_giornaliere": {
+    "pick_p1_disponibili": 0,
+    "pick_p2_disponibili": 3,
+    "pick_p3_disponibili": 0,
+    "mercati": {
+      "OU35": 2,
+      "G1T": 1
+    },
+    "roi_potenziale_medio": 14.8,
+    "budget_preservato": 10
+  },
+  "checklist_finale": {
+    "filtro_leghe": "✅ P1/P2 OK",
+    "filtro_mercati": "✅ OU35 + G1T Atlas 3/3",
+    "consensus": "✅ Atlas + V5High accordo",
+    "pai_verificato": "✅ Formazioni controllate",
+    "quota_minima": "✅ Tutte >= 1.30",
+    "max_3_gambe": "✅ 3 gambe",
+    "stake_totale": "✅ €20 < €30",
+    "pick_validi": "✅ 4 pick distinti"
+  },
+  "skip": {}
+}
