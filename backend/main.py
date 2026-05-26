@@ -570,32 +570,46 @@ async def load_batch_data(picks: list[PickData] = [], players: list[PlayerData] 
 @app.get("/api/picks-today")
 async def get_picks_today():
     """
-    Legge il file picks più recente dalla cartella /backend/data/picks/
+    Legge il file picks più recente da GitHub API
     Formato file: picks_YYYY-MM-DD.json
     """
-    picks_dir = Path("backend/data/picks")
-    
-    # Se la cartella non esiste, creala
-    picks_dir.mkdir(parents=True, exist_ok=True)
-    
-    # Trova tutti i file picks_*.json
-    pick_files = list(picks_dir.glob("picks_*.json"))
-    
-    if not pick_files:
-        return {
-            "error": "Nessun pick disponibile oggi",
-            "message": "Salva un file picks_YYYY-MM-DD.json in /backend/data/picks/"
-        }
-    
-    # Prendi il file più recente
-    latest_file = sorted(pick_files)[-1]
-    
     try:
-        with open(latest_file, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-        return data
+        # URL della cartella picks su GitHub API
+        github_url = "https://api.github.com/repos/marcolippolis1990/atlas-betting/contents/backend/data/picks"
+        
+        # Fetch dalla API di GitHub
+        response = requests.get(github_url)
+        
+        if response.status_code != 200:
+            return {
+                "error": "Nessun pick disponibile oggi",
+                "message": "Salva un file picks_YYYY-MM-DD.json in GitHub /backend/data/picks/"
+            }
+        
+        files = response.json()
+        
+        # Filtra solo i file picks_*.json
+        pick_files = [f for f in files if f['name'].startswith('picks_') and f['name'].endswith('.json')]
+        
+        if not pick_files:
+            return {
+                "error": "Nessun pick disponibile oggi",
+                "message": "Salva un file picks_YYYY-MM-DD.json in GitHub /backend/data/picks/"
+            }
+        
+        # Prendi il file più recente
+        latest_file = sorted(pick_files, key=lambda x: x['name'])[-1]
+        
+        # Leggi il contenuto del file
+        file_response = requests.get(latest_file['download_url'])
+        
+        if file_response.status_code == 200:
+            return file_response.json()
+        else:
+            return {"error": "Errore lettura file"}
+            
     except Exception as e:
-        return {"error": f"Errore lettura file: {str(e)}"}
+        return {"error": f"Errore: {str(e)}"}
 # ============================================================================
 # ROOT
 # ============================================================================
