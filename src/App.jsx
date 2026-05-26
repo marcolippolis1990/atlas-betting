@@ -279,42 +279,134 @@ function App() {
 
             {bettingTab === 'stats' && (
               <div style={{padding: '20px', backgroundColor: '#2a3f4f', borderRadius: '8px', marginBottom: '30px'}}>
-                <h3 style={{color: '#00d4ff'}}>Statistiche giornaliere</h3>
-                {picksToday?.statistiche_giornaliere ? (
-                  <div>
-                    <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '20px'}}>
-                      <div style={{padding: '15px', backgroundColor: '#1a2332', borderRadius: '6px'}}>
-                        <p style={{color: '#aaa', fontSize: '12px', marginTop: 0}}>Pick P1</p>
-                        <p style={{color: '#4ade80', fontSize: '24px', fontWeight: 'bold', margin: '10px 0'}}>{picksToday.statistiche_giornaliere.pick_p1_disponibili || 0}</p>
+                <h3 style={{color: '#00d4ff', marginBottom: '20px'}}>📊 Statistiche e Performance</h3>
+
+                {/* PERFORMANCE LEGHE */}
+                <div style={{marginBottom: '30px', padding: '15px', backgroundColor: '#1a2332', borderRadius: '8px'}}>
+                  <h4 style={{color: '#4ade80', marginTop: 0}}>🏆 Performance per Lega</h4>
+                  <div style={{overflowX: 'auto'}}>
+                    <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '12px'}}>
+                      <thead>
+                        <tr style={{backgroundColor: '#0a1420'}}>
+                          <th style={{padding: '10px', textAlign: 'left', color: '#00d4ff', borderBottom: '2px solid #00d4ff'}}>Lega</th>
+                          <th style={{padding: '10px', textAlign: 'center', color: '#00d4ff', borderBottom: '2px solid #00d4ff'}}>N</th>
+                          <th style={{padding: '10px', textAlign: 'center', color: '#00d4ff', borderBottom: '2px solid #00d4ff'}}>WR</th>
+                          <th style={{padding: '10px', textAlign: 'center', color: '#00d4ff', borderBottom: '2px solid #00d4ff'}}>ROI</th>
+                          <th style={{padding: '10px', textAlign: 'left', color: '#00d4ff', borderBottom: '2px solid #00d4ff'}}>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {picksToday?.stats_dettagliate?.performance_leghe?.map((lega, idx) => (
+                          <tr key={idx} style={{borderBottom: '1px solid #2a3f4f'}}>
+                            <td style={{padding: '10px', color: '#ccc'}}>{lega.lega}</td>
+                            <td style={{padding: '10px', textAlign: 'center', color: '#aaa'}}>{lega.n}</td>
+                            <td style={{padding: '10px', textAlign: 'center', color: lega.wr >= 70 ? '#4ade80' : '#ff9800'}}><strong>{lega.wr}%</strong></td>
+                            <td style={{padding: '10px', textAlign: 'center', color: lega.roi > 0 ? '#4ade80' : '#ff6b6b'}}><strong>{lega.roi > 0 ? '+' : ''}{lega.roi}%</strong></td>
+                            <td style={{padding: '10px', color: '#aaa', fontSize: '11px'}}>{lega.status}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* PERFORMANCE MERCATI */}
+                <div style={{marginBottom: '30px', padding: '15px', backgroundColor: '#1a2332', borderRadius: '8px'}}>
+                  <h4 style={{color: '#4ade80', marginTop: 0}}>💹 Performance per Mercato</h4>
+                  {picksToday?.stats_dettagliate?.performance_mercati?.map((mercato, idx) => (
+                    <div key={idx} style={{padding: '12px', marginBottom: '10px', backgroundColor: '#0a1420', borderRadius: '6px', borderLeft: '3px solid ' + (mercato.roi > 0 ? '#4ade80' : '#ff6b6b')}}>
+                      <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '8px'}}>
+                        <h5 style={{color: '#fff', margin: 0}}>{mercato.mercato}</h5>
+                        <span style={{color: mercato.roi > 0 ? '#4ade80' : '#ff6b6b', fontWeight: 'bold'}}>ROI {mercato.roi > 0 ? '+' : ''}{mercato.roi}%</span>
                       </div>
-                      <div style={{padding: '15px', backgroundColor: '#1a2332', borderRadius: '6px'}}>
-                        <p style={{color: '#aaa', fontSize: '12px', marginTop: 0}}>Pick P2</p>
-                        <p style={{color: '#4ade80', fontSize: '24px', fontWeight: 'bold', margin: '10px 0'}}>{picksToday.statistiche_giornaliere.pick_p2_disponibili || 0}</p>
+                      <p style={{color: '#aaa', margin: '5px 0', fontSize: '12px'}}>N: {mercato.n} | WR: <strong style={{color: '#00d4ff'}}>{mercato.wr}%</strong></p>
+                      <p style={{color: '#ccc', margin: '5px 0', fontSize: '11px'}}>{mercato.regola}</p>
+                      {mercato.best_lega && <p style={{color: '#facc15', margin: '5px 0', fontSize: '11px'}}>🌟 Best: {mercato.best_lega}</p>}
+                      {mercato.best_contesto && <p style={{color: '#facc15', margin: '5px 0', fontSize: '11px'}}>🌟 Best: {mercato.best_contesto}</p>}
+                    </div>
+                  ))}
+                </div>
+
+                {/* PATTERN OPERATIVI */}
+                <div style={{marginBottom: '30px', padding: '15px', backgroundColor: '#1a2332', borderRadius: '8px'}}>
+                  <h4 style={{color: '#4ade80', marginTop: 0}}>⚡ Pattern Operativi (Oro del Sistema)</h4>
+                  {picksToday?.stats_dettagliate?.pattern_operativi?.map((pattern, idx) => (
+                    <div key={idx} style={{padding: '12px', marginBottom: '10px', backgroundColor: '#0a1420', borderRadius: '6px', borderLeft: '4px solid #facc15'}}>
+                      <h5 style={{color: '#facc15', margin: '0 0 8px 0'}}>{pattern.nome}</h5>
+                      <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '8px'}}>
+                        <span style={{color: '#4ade80'}}>WR: <strong>{pattern.wr}%</strong></span>
+                        <span style={{color: '#aaa', fontSize: '12px'}}>Backtest: {pattern.partite} partite</span>
                       </div>
-                      <div style={{padding: '15px', backgroundColor: '#1a2332', borderRadius: '6px'}}>
-                        <p style={{color: '#aaa', fontSize: '12px', marginTop: 0}}>ROI Potenziale</p>
-                        <p style={{color: '#facc15', fontSize: '24px', fontWeight: 'bold', margin: '10px 0'}}>+{picksToday.statistiche_giornaliere.roi_potenziale_medio || 0}%</p>
+                      <p style={{color: '#ccc', margin: '8px 0', fontSize: '12px'}}>{pattern.descrizione}</p>
+                      {pattern.delta && <p style={{color: '#ff9800', margin: '5px 0', fontSize: '11px'}}>📊 Delta vs contropartita: {pattern.delta}</p>}
+                      <p style={{color: '#aaa', margin: '5px 0', fontSize: '11px'}}><strong>Applicazione:</strong> {pattern.applicazione}</p>
+                      {pattern.best_leghe && (
+                        <div style={{color: '#4ade80', fontSize: '11px', marginTop: '8px'}}>
+                          <strong>Best leghe:</strong> {pattern.best_leghe.join(' | ')}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* SINTESI ROI POSITIVO */}
+                <div style={{marginBottom: '30px', padding: '15px', backgroundColor: '#1a2332', borderRadius: '8px'}}>
+                  <h4 style={{color: '#4ade80', marginTop: 0}}>🎯 Migliori Combinazioni (ROI Positivo)</h4>
+                  {picksToday?.stats_dettagliate?.sintesi_roi_positivo?.map((combo, idx) => (
+                    <div key={idx} style={{padding: '12px', marginBottom: '10px', backgroundColor: '#0a1420', borderRadius: '6px', borderLeft: '4px solid #4ade80'}}>
+                      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px'}}>
+                        <h5 style={{color: '#fff', margin: 0}}>{combo.contesto}</h5>
+                        <span style={{color: '#4ade80', fontWeight: 'bold'}}>{combo.ranking}</span>
                       </div>
-                      <div style={{padding: '15px', backgroundColor: '#1a2332', borderRadius: '6px'}}>
-                        <p style={{color: '#aaa', fontSize: '12px', marginTop: 0}}>Budget Preservato</p>
-                        <p style={{color: '#ff9800', fontSize: '24px', fontWeight: 'bold', margin: '10px 0'}}>€{picksToday.statistiche_giornaliere.budget_preservato || 0}</p>
+                      <div style={{display: 'flex', gap: '20px', fontSize: '12px'}}>
+                        <span style={{color: '#4ade80'}}>WR: <strong>{combo.wr}%</strong></span>
+                        <span style={{color: '#4ade80'}}>ROI: <strong>+{combo.roi}%</strong></span>
+                        <span style={{color: '#aaa'}}>N: {combo.n} pick</span>
                       </div>
                     </div>
-                    {picksToday.statistiche_giornaliere.mercati && Object.keys(picksToday.statistiche_giornaliere.mercati).length > 0 && (
-                      <div style={{padding: '15px', backgroundColor: '#1a2332', borderRadius: '6px'}}>
-                        <h4 style={{color: '#00d4ff', marginTop: 0}}>Mercati</h4>
-                        {Object.entries(picksToday.statistiche_giornaliere.mercati).map(([market, count]) => (
-                          <p key={market} style={{color: '#ccc', margin: '5px 0'}}>{market}: {count} pick</p>
-                        ))}
+                  ))}
+                </div>
+
+                {/* FORMAZIONI TOP */}
+                <div style={{marginBottom: '30px', padding: '15px', backgroundColor: '#1a2332', borderRadius: '8px'}}>
+                  <h4 style={{color: '#4ade80', marginTop: 0}}>🏗️ Formazioni Top</h4>
+                  {picksToday?.stats_dettagliate?.formazioni_top?.map((form, idx) => (
+                    <div key={idx} style={{padding: '12px', marginBottom: '10px', backgroundColor: '#0a1420', borderRadius: '6px'}}>
+                      <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '5px'}}>
+                        <h5 style={{color: '#00d4ff', margin: 0}}>{form.formazione}</h5>
+                        <span style={{color: '#aaa', fontSize: '12px'}}>Usata {form.n_totale} volte</span>
                       </div>
-                    )}
-                  </div>
-                ) : (
-                  <p style={{color: '#aaa'}}>Nessuna statistica disponibile</p>
-                )}
+                      <p style={{color: '#ccc', margin: '5px 0', fontSize: '12px'}}>WR medio: <strong style={{color: '#4ade80'}}>{form.wr_medio}%</strong></p>
+                      <p style={{color: '#aaa', margin: 0, fontSize: '11px'}}>{form.note}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* EUROPEAN WEEK VARIATIONS */}
+                <div style={{padding: '15px', backgroundColor: '#1a2332', borderRadius: '8px'}}>
+                  <h4 style={{color: '#4ade80', marginTop: 0}}>🌍 Variazioni in European Week</h4>
+                  {picksToday?.stats_dettagliate?.european_week_variations?.map((ew, idx) => (
+                    <div key={idx} style={{padding: '12px', marginBottom: '10px', backgroundColor: '#0a1420', borderRadius: '6px'}}>
+                      <h5 style={{color: '#00d4ff', margin: '0 0 8px 0'}}>{ew.squadra}</h5>
+                      <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '11px', marginBottom: '8px'}}>
+                        <div>
+                          <p style={{color: '#aaa', margin: '0 0 3px 0'}}>Normale:</p>
+                          <p style={{color: '#ccc', margin: 0}}>{ew.normale}</p>
+                        </div>
+                        <div>
+                          <p style={{color: '#aaa', margin: '0 0 3px 0'}}>European Week:</p>
+                          <p style={{color: '#4ade80', margin: 0}}>{ew.eur_week}</p>
+                        </div>
+                      </div>
+                      <p style={{color: '#facc15', margin: '5px 0', fontSize: '10px'}}>Δ gol: {ew.delta_gol}</p>
+                      <p style={{color: '#aaa', margin: 0, fontSize: '10px'}}>{ew.nota}</p>
+                    </div>
+                  ))}
+                </div>
+
               </div>
             )}
-
+            
             {bettingTab === 'checklist' && (
               <div style={{padding: '20px', backgroundColor: '#2a3f4f', borderRadius: '8px', marginBottom: '30px'}}>
                 <h3 style={{color: '#00d4ff'}}>✅ Checklist finale ATLAS</h3>
