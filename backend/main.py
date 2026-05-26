@@ -10,6 +10,7 @@ from pathlib import Path
 from datetime import datetime
 import logging
 import json
+import requests
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
