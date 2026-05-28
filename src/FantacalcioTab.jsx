@@ -23,48 +23,60 @@ function FantacalcioTab() {
     }
   }, []);
 
-  // Carica giocatori (mock per ora - sarà dal file JSON)
+  // Carica giocatori dal JSON
   useEffect(() => {
-    // MOCK DATA - Sostituire con file JSON reale
-    const mockPlayers = [
-      {
-        id: 1,
-        name: 'Gianluigi Donnarumma',
-        team: 'AC Milan',
-        pos: 'G',
-        avg_rating: 7.5,
-        prob_score: 0,
-        prob_assist: 0,
-        fair_score: 45,
-        fair_assist: 50
-      },
-      {
-        id: 2,
-        name: 'Theo Hernández',
-        team: 'AC Milan',
-        pos: 'D',
-        avg_rating: 7.8,
-        prob_score: 0.05,
-        prob_assist: 0.15,
-        fair_score: 50,
-        fair_assist: 55
-      },
-      {
-        id: 3,
-        name: 'Khvicha Kvaratskhelia',
-        team: 'Napoli',
-        pos: 'A',
-        avg_rating: 7.9,
-        prob_score: 0.35,
-        prob_assist: 0.25,
-        fair_score: 65,
-        fair_assist: 60
+    const loadPlayers = async () => {
+      try {
+        const response = await fetch('/player_props_2026-05-02.json');
+        const data = await response.json();
+        
+        // Estrai tutti i giocatori da tutte le partite e filtra solo Serie A
+        const allPlayersArray = [];
+        data.matches.forEach(match => {
+          if (match.league === 'Serie A') {
+            match.players.forEach(player => {
+              allPlayersArray.push({
+                ...player,
+                match_home: match.home,
+                match_away: match.away,
+                match_date: match.date
+              });
+            });
+          }
+        });
+
+        // Elimina duplicati (stesso giocatore potrebbe apparire in più partite)
+        const uniquePlayers = Array.from(
+          new Map(allPlayersArray.map(p => [p.id, p])).values()
+        );
+
+        // Ordina per rating decrescente
+        uniquePlayers.sort((a, b) => b.avg_rating - a.avg_rating);
+
+        setAllPlayers(uniquePlayers);
+        setTopPlayers(uniquePlayers.slice(0, 10));
+      } catch (err) {
+        console.error('Errore caricamento giocatori:', err);
+        // Fallback a dati mock se il caricamento fallisce
+        const mockPlayers = [
+          {
+            id: 1,
+            name: 'Gianluigi Donnarumma',
+            team: 'AC Milan',
+            pos: 'G',
+            avg_rating: 7.5,
+            prob_score: 0,
+            prob_assist: 0,
+            fair_score: 45,
+            fair_assist: 50
+          }
+        ];
+        setAllPlayers(mockPlayers);
+        setTopPlayers(mockPlayers);
       }
-      // Aggiungere più giocatori...
-    ];
-    
-    setAllPlayers(mockPlayers);
-    setTopPlayers(mockPlayers.slice(0, 5).sort((a, b) => b.avg_rating - a.avg_rating));
+    };
+
+    loadPlayers();
   }, []);
 
   // Filtra giocatori
@@ -91,7 +103,7 @@ function FantacalcioTab() {
   };
 
   const getRoleLabel = (pos) => {
-    const labels = { 'G': 'Portiere', 'D': 'Difensore', 'C': 'Centrocampista', 'A': 'Attaccante' };
+    const labels = { 'G': 'Portiere', 'D': 'Difensore', 'M': 'Centrocampista', 'C': 'Centrocampista', 'F': 'Attaccante', 'A': 'Attaccante' };
     return labels[pos] || pos;
   };
 
@@ -231,7 +243,9 @@ function FantacalcioTab() {
               <option value="all">Tutti i ruoli</option>
               <option value="G">Portieri</option>
               <option value="D">Difensori</option>
+              <option value="M">Centrocampisti</option>
               <option value="C">Centrocampisti</option>
+              <option value="F">Attaccanti</option>
               <option value="A">Attaccanti</option>
             </select>
           </div>
