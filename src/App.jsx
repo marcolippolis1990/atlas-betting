@@ -170,13 +170,13 @@ function App() {
               <div style={{marginBottom: '30px', padding: '20px', backgroundColor: '#1a2332', borderRadius: '8px', border: '2px solid #00d4ff'}}>
                 <h3 style={{color: '#00d4ff', marginTop: 0}}>📍 Come funzionano le strategie?</h3>
                 <p style={{color: '#d0d0d0', lineHeight: '1.8', marginBottom: '15px'}}>
-                  Ogni strategia rappresenta un orizzonte temporale diverso. <strong>d0</strong> significa "oggi", <strong>d1</strong> "oggi + domani", e così via.
+                  Ogni strategia rappresenta un orizzonte temporale diverso. La <strong>Schedina Giornaliera</strong> è solo oggi, la <strong>Schedina su 2 Giorni</strong> copre oggi e domani, e così via.
                 </p>
                 <p style={{color: '#d0d0d0', lineHeight: '1.8', marginBottom: '15px'}}>
                   Più giorni = più partite disponibili = maggiore probabilità di trovare segnali forti. Ma anche più rischio. Scegli la strategia che meglio si adatta al tuo stile di gioco.
                 </p>
                 <p style={{color: '#d0d0d0', lineHeight: '1.8'}}>
-                  <strong>Pro tip:</strong> Se cerchi massima affidabilità, scegli d3. Se vuoi giocare spesso, scegli d0. Il resto dipende da te.
+                  <strong>Pro tip:</strong> Se cerchi massima affidabilità, scegli la <strong>Schedina su 4 Giorni</strong>. Se vuoi giocare spesso, scegli la <strong>Schedina Giornaliera</strong>. Il resto dipende da te.
                 </p>
               </div>
               
