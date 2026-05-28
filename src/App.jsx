@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import './App.css';
 
 function App() {
-  const [activeTab, setActiveTab] = useState('home');
+  const [homeTab, setHomeTab] = useState('schedine');
   const [picksData, setPicksData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [selectedPick, setSelectedPick] = useState(null);
   const [selectedDays, setSelectedDays] = useState(null);
+  const [picksTab, setPicksTab] = useState('oggi');
   const [donationAmount, setDonationAmount] = useState(10);
   const [donationEmail, setDonationEmail] = useState('');
 
@@ -22,7 +23,7 @@ function App() {
       if (Array.isArray(data) && data.length > 0) {
         setPicksData(data);
         setSelectedDays(days);
-        setActiveTab('schedina');
+        setPicksTab('oggi');
         setSelectedPick(null);
       } else {
         alert('Nessun pick disponibile');
@@ -60,7 +61,6 @@ function App() {
 
   const analysis = analyzePicksData();
 
-  // Format date
   const formatDate = (dateStr) => {
     const date = new Date(dateStr + 'T00:00:00');
     const day = date.getDate();
@@ -68,7 +68,6 @@ function App() {
     return `${day} ${month}`;
   };
 
-  // Format pick label
   const formatPickLabel = (pick) => {
     const marketLabel = pick.market === 'OU35' ? (pick.pick === 'U3.5' ? 'Under 3.5' : 'Over 3.5') :
                        pick.market === 'OU15' ? (pick.pick === 'O1.5' ? 'Over 1.5' : 'Under 1.5') :
@@ -78,7 +77,6 @@ function App() {
     return marketLabel;
   };
 
-  // Get news links
   const getNewsLinks = (team) => {
     const encodedTeam = encodeURIComponent(team);
     return {
@@ -89,7 +87,6 @@ function App() {
     };
   };
 
-  // Result badge
   const getResultBadge = (pick) => {
     if (!pick.result) return null;
     const { won, profit } = pick.result;
@@ -122,174 +119,211 @@ function App() {
 
   return (
     <div className="app">
-      <header className="header" onClick={() => { setActiveTab('home'); setPicksData(null); setSelectedPick(null); }} style={{cursor: 'pointer'}}>
+      <header className="header" onClick={() => { setPicksData(null); setSelectedPick(null); setHomeTab('schedine'); }} style={{cursor: 'pointer'}}>
         <h1>⚽ ATLAS Betting</h1>
         <p>Sistema di analisi calcistica avanzato</p>
       </header>
 
       {/* HOME - No picks loaded */}
-      {activeTab === 'home' && !picksData && (
+      {!picksData && (
         <main className="content">
-          <section className="section">
-            <h2 style={{color: '#00d4ff', marginBottom: '30px'}}>🎯 Scegli la strategia</h2>
-            
-            <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '40px'}}>
-              <button
-                onClick={() => fetchPicks(0)}
-                style={{
-                  padding: '30px 20px',
-                  backgroundColor: '#1a2332',
-                  border: '2px solid #ff6b6b',
-                  borderRadius: '8px',
-                  color: '#fff',
-                  cursor: 'pointer',
-                  fontSize: '16px',
-                  fontWeight: 'bold',
-                  textAlign: 'left'
-                }}
-              >
-                <h3 style={{color: '#ff6b6b', margin: '0 0 10px 0'}}>🔥 Oggi (d0)</h3>
-                <p style={{color: '#aaa', fontSize: '12px', margin: '0', lineHeight: '1.4'}}>
-                  Massimo rischio, massima frequenza. Gioca OGNI GIORNO le migliori partite di oggi.
-                </p>
-              </button>
+          {/* HOME TABS */}
+          <nav className="nav-tabs" style={{marginBottom: '30px'}}>
+            <button 
+              className={`tab ${homeTab === 'schedine' ? 'active' : ''}`}
+              onClick={() => setHomeTab('schedine')}
+            >
+              🎯 Schedine
+            </button>
+            <button 
+              className={`tab ${homeTab === 'stats' ? 'active' : ''}`}
+              onClick={() => setHomeTab('stats')}
+            >
+              📊 Statistiche
+            </button>
+            <button 
+              className={`tab ${homeTab === 'fantacalcio' ? 'active' : ''}`}
+              onClick={() => setHomeTab('fantacalcio')}
+            >
+              👥 Fantacalcio
+            </button>
+            <button 
+              className={`tab ${homeTab === 'supporta' ? 'active' : ''}`}
+              onClick={() => setHomeTab('supporta')}
+            >
+              ❤️ Supporta
+            </button>
+          </nav>
 
-              <button
-                onClick={() => fetchPicks(1)}
-                style={{
-                  padding: '30px 20px',
-                  backgroundColor: '#1a2332',
-                  border: '2px solid #facc15',
-                  borderRadius: '8px',
-                  color: '#fff',
-                  cursor: 'pointer',
-                  fontSize: '16px',
-                  fontWeight: 'bold',
-                  textAlign: 'left'
-                }}
-              >
-                <h3 style={{color: '#facc15', margin: '0 0 10px 0'}}>⚡ Oggi + Domani (d1)</h3>
-                <p style={{color: '#aaa', fontSize: '12px', margin: '0', lineHeight: '1.4'}}>
-                  Rischio moderato. Scegli le 2 migliori partite su 2 giorni per aumentare affidabilità.
-                </p>
-              </button>
+          {/* SCHEDINE TAB */}
+          {homeTab === 'schedine' && (
+            <section className="section">
+              <h2 style={{color: '#00d4ff', marginBottom: '30px'}}>🎯 Scegli la strategia</h2>
+              
+              <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px'}}>
+                <button
+                  onClick={() => fetchPicks(0)}
+                  style={{
+                    padding: '30px 20px',
+                    backgroundColor: '#1a2332',
+                    border: '2px solid #ff6b6b',
+                    borderRadius: '8px',
+                    color: '#fff',
+                    cursor: 'pointer',
+                    fontSize: '16px',
+                    fontWeight: 'bold',
+                    textAlign: 'left'
+                  }}
+                >
+                  <h3 style={{color: '#ff6b6b', margin: '0 0 10px 0'}}>🔥 Oggi (d0)</h3>
+                  <p style={{color: '#aaa', fontSize: '12px', margin: '0', lineHeight: '1.4'}}>
+                    Massimo rischio, massima frequenza. Gioca OGNI GIORNO le migliori partite di oggi.
+                  </p>
+                </button>
 
-              <button
-                onClick={() => fetchPicks(2)}
-                style={{
-                  padding: '30px 20px',
-                  backgroundColor: '#1a2332',
-                  border: '2px solid #4ade80',
-                  borderRadius: '8px',
-                  color: '#fff',
-                  cursor: 'pointer',
-                  fontSize: '16px',
-                  fontWeight: 'bold',
-                  textAlign: 'left'
-                }}
-              >
-                <h3 style={{color: '#4ade80', margin: '0 0 10px 0'}}>🛡️ Oggi + 2 Giorni (d2)</h3>
-                <p style={{color: '#aaa', fontSize: '12px', margin: '0', lineHeight: '1.4'}}>
-                  Basso rischio. Scegli le 3 migliori partite su 3 giorni, massima probabilità di vincita.
-                </p>
-              </button>
+                <button
+                  onClick={() => fetchPicks(1)}
+                  style={{
+                    padding: '30px 20px',
+                    backgroundColor: '#1a2332',
+                    border: '2px solid #facc15',
+                    borderRadius: '8px',
+                    color: '#fff',
+                    cursor: 'pointer',
+                    fontSize: '16px',
+                    fontWeight: 'bold',
+                    textAlign: 'left'
+                  }}
+                >
+                  <h3 style={{color: '#facc15', margin: '0 0 10px 0'}}>⚡ Oggi + Domani (d1)</h3>
+                  <p style={{color: '#aaa', fontSize: '12px', margin: '0', lineHeight: '1.4'}}>
+                    Rischio moderato. Scegli le 2 migliori partite su 2 giorni per aumentare affidabilità.
+                  </p>
+                </button>
 
-              <button
-                onClick={() => fetchPicks(3)}
-                style={{
-                  padding: '30px 20px',
-                  backgroundColor: '#1a2332',
-                  border: '2px solid #00d4ff',
-                  borderRadius: '8px',
-                  color: '#fff',
-                  cursor: 'pointer',
-                  fontSize: '16px',
-                  fontWeight: 'bold',
-                  textAlign: 'left'
-                }}
-              >
-                <h3 style={{color: '#00d4ff', margin: '0 0 10px 0'}}>🏰 Oggi + 3 Giorni (d3)</h3>
-                <p style={{color: '#aaa', fontSize: '12px', margin: '0', lineHeight: '1.4'}}>
-                  Minimo rischio, massima affidabilità. Gioca solo le partite ECCELLENTI su 4 giorni.
-                </p>
-              </button>
-            </div>
+                <button
+                  onClick={() => fetchPicks(2)}
+                  style={{
+                    padding: '30px 20px',
+                    backgroundColor: '#1a2332',
+                    border: '2px solid #4ade80',
+                    borderRadius: '8px',
+                    color: '#fff',
+                    cursor: 'pointer',
+                    fontSize: '16px',
+                    fontWeight: 'bold',
+                    textAlign: 'left'
+                  }}
+                >
+                  <h3 style={{color: '#4ade80', margin: '0 0 10px 0'}}>🛡️ Oggi + 2 Giorni (d2)</h3>
+                  <p style={{color: '#aaa', fontSize: '12px', margin: '0', lineHeight: '1.4'}}>
+                    Basso rischio. Scegli le 3 migliori partite su 3 giorni, massima probabilità di vincita.
+                  </p>
+                </button>
 
-            {loading && <p style={{color: '#aaa'}}>⏳ Caricamento...</p>}
-          </section>
-
-          {/* STATS SECTION */}
-          <section className="section">
-            <h2 style={{color: '#00d4ff', marginBottom: '20px'}}>📊 Statistiche</h2>
-            <p style={{color: '#aaa'}}>📈 Performance per lega, mercato e pattern — sezione in sviluppo</p>
-          </section>
-
-          {/* FANTACALCIO SECTION */}
-          <section className="section">
-            <h2 style={{color: '#00d4ff', marginBottom: '20px'}}>👥 Fantacalcio</h2>
-            <p style={{color: '#aaa'}}>⚽ Top giocatori e statistiche — sezione in sviluppo</p>
-          </section>
-
-          {/* DONAZIONI SECTION */}
-          <section className="section">
-            <h2 style={{color: '#00d4ff', marginBottom: '20px'}}>❤️ Supporta ATLAS</h2>
-            <div style={{padding: '20px', backgroundColor: '#1a2332', borderRadius: '8px'}}>
-              <p style={{color: '#ccc'}}>Aiuta a migliorare il sistema con una donazione</p>
-              <div style={{display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '15px'}}>
-                {[5, 10, 25, 50].map(amt => (
-                  <button
-                    key={amt}
-                    onClick={() => setDonationAmount(amt)}
-                    style={{
-                      padding: '8px 16px',
-                      backgroundColor: donationAmount === amt ? '#4ade80' : '#2a3f4f',
-                      color: '#fff',
-                      border: 'none',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      fontWeight: 'bold'
-                    }}
-                  >
-                    €{amt}
-                  </button>
-                ))}
+                <button
+                  onClick={() => fetchPicks(3)}
+                  style={{
+                    padding: '30px 20px',
+                    backgroundColor: '#1a2332',
+                    border: '2px solid #00d4ff',
+                    borderRadius: '8px',
+                    color: '#fff',
+                    cursor: 'pointer',
+                    fontSize: '16px',
+                    fontWeight: 'bold',
+                    textAlign: 'left'
+                  }}
+                >
+                  <h3 style={{color: '#00d4ff', margin: '0 0 10px 0'}}>🏰 Oggi + 3 Giorni (d3)</h3>
+                  <p style={{color: '#aaa', fontSize: '12px', margin: '0', lineHeight: '1.4'}}>
+                    Minimo rischio, massima affidabilità. Gioca solo le partite ECCELLENTI su 4 giorni.
+                  </p>
+                </button>
               </div>
-              <input
-                type="email"
-                placeholder="La tua email"
-                value={donationEmail}
-                onChange={(e) => setDonationEmail(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  marginBottom: '10px',
-                  backgroundColor: '#2a3f4f',
-                  border: '1px solid #00d4ff',
-                  borderRadius: '4px',
-                  color: '#fff',
-                  boxSizing: 'border-box'
-                }}
-              />
-              <button
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  backgroundColor: '#4ade80',
-                  color: '#000',
-                  border: 'none',
-                  borderRadius: '4px',
-                  fontWeight: 'bold',
-                  cursor: 'pointer'
-                }}
-              >
-                💳 Dona €{donationAmount}
-              </button>
-            </div>
-          </section>
+
+              {loading && <p style={{color: '#aaa', marginTop: '20px'}}>⏳ Caricamento...</p>}
+            </section>
+          )}
+
+          {/* STATS TAB */}
+          {homeTab === 'stats' && (
+            <section className="section">
+              <h2 style={{color: '#00d4ff', marginBottom: '20px'}}>📊 Statistiche</h2>
+              <p style={{color: '#aaa'}}>📈 Performance per lega, mercato e pattern — sezione in sviluppo</p>
+            </section>
+          )}
+
+          {/* FANTACALCIO TAB */}
+          {homeTab === 'fantacalcio' && (
+            <section className="section">
+              <h2 style={{color: '#00d4ff', marginBottom: '20px'}}>👥 Fantacalcio</h2>
+              <p style={{color: '#aaa'}}>⚽ Top giocatori e statistiche — sezione in sviluppo</p>
+            </section>
+          )}
+
+          {/* SUPPORTA TAB */}
+          {homeTab === 'supporta' && (
+            <section className="section">
+              <h2 style={{color: '#00d4ff', marginBottom: '20px'}}>❤️ Supporta ATLAS</h2>
+              <div style={{padding: '20px', backgroundColor: '#1a2332', borderRadius: '8px'}}>
+                <p style={{color: '#ccc'}}>Aiuta a migliorare il sistema con una donazione</p>
+                <div style={{display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '15px'}}>
+                  {[5, 10, 25, 50].map(amt => (
+                    <button
+                      key={amt}
+                      onClick={() => setDonationAmount(amt)}
+                      style={{
+                        padding: '8px 16px',
+                        backgroundColor: donationAmount === amt ? '#4ade80' : '#2a3f4f',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontWeight: 'bold'
+                      }}
+                    >
+                      €{amt}
+                    </button>
+                  ))}
+                </div>
+                <input
+                  type="email"
+                  placeholder="La tua email"
+                  value={donationEmail}
+                  onChange={(e) => setDonationEmail(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    marginBottom: '10px',
+                    backgroundColor: '#2a3f4f',
+                    border: '1px solid #00d4ff',
+                    borderRadius: '4px',
+                    color: '#fff',
+                    boxSizing: 'border-box'
+                  }}
+                />
+                <button
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    backgroundColor: '#4ade80',
+                    color: '#000',
+                    border: 'none',
+                    borderRadius: '4px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer'
+                  }}
+                >
+                  💳 Dona €{donationAmount}
+                </button>
+              </div>
+            </section>
+          )}
         </main>
       )}
 
-      {/* TAB NAVIGATION - When picks loaded */}
+      {/* PICKS VIEW - Tab Oggi/Storico/Analisi */}
       {picksData && (
         <>
           <nav className="nav-tabs" style={{alignItems: 'center'}}>
@@ -297,20 +331,20 @@ function App() {
               <span style={{color: '#4ade80', fontWeight: 'bold'}}>📍 {getDaysLabel(selectedDays)}</span>
             </div>
             <button 
-              className={`tab ${activeTab === 'schedina' ? 'active' : ''}`}
-              onClick={() => { setActiveTab('schedina'); setSelectedPick(null); }}
+              className={`tab ${picksTab === 'oggi' ? 'active' : ''}`}
+              onClick={() => { setPicksTab('oggi'); setSelectedPick(null); }}
             >
-              🎯 Schedina
+              📋 Oggi
             </button>
             <button 
-              className={`tab ${activeTab === 'storico' ? 'active' : ''}`}
-              onClick={() => setActiveTab('storico')}
+              className={`tab ${picksTab === 'storico' ? 'active' : ''}`}
+              onClick={() => setPicksTab('storico')}
             >
               📜 Storico
             </button>
             <button 
               className={`tab`}
-              onClick={() => { setActiveTab('home'); setPicksData(null); setSelectedPick(null); }}
+              onClick={() => { setPicksData(null); setSelectedPick(null); }}
               style={{marginLeft: 'auto', backgroundColor: '#ff6b6b', color: '#fff'}}
             >
               ← Indietro
@@ -318,8 +352,8 @@ function App() {
           </nav>
 
           <main className="content">
-            {/* TAB SCHEDINA */}
-            {activeTab === 'schedina' && analysis && (
+            {/* TAB OGGI - Tabella sintetica */}
+            {picksTab === 'oggi' && analysis && !selectedPick && (
               <section className="section">
                 <div style={{marginBottom: '20px', padding: '15px', backgroundColor: '#2a3f4f', borderRadius: '6px', borderLeft: '4px solid #4ade80'}}>
                   <p style={{color: '#4ade80', fontWeight: 'bold', margin: 0}}>
@@ -327,107 +361,44 @@ function App() {
                   </p>
                 </div>
 
+                {/* CONSIGLIATISSIMO */}
                 <div style={{marginBottom: '30px', padding: '20px', backgroundColor: '#1a2332', borderRadius: '8px', border: '2px solid #00d4ff'}}>
                   <h2 style={{color: '#00d4ff', marginTop: 0}}>🎯 CONSIGLIATISSIMO</h2>
                   
-                  <div style={{backgroundColor: '#2a3f4f', padding: '15px', borderRadius: '6px'}}>
-                    {analysis.consigliatissimo.length > 0 ? (
-                      analysis.consigliatissimo.map((pick, idx) => (
-                        <div
-                          key={idx}
-                          onClick={() => setSelectedPick(pick)}
-                          style={{
-                            padding: '12px',
-                            marginBottom: '10px',
-                            backgroundColor: '#0a1420',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            borderLeft: '3px solid #4ade80',
-                            transition: 'all 0.2s'
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a2332'}
-                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#0a1420'}
-                        >
-                          <p style={{color: '#fff', fontWeight: 'bold', margin: '0 0 5px 0'}}>
-                            {pick.home} vs {pick.away} | {formatPickLabel(pick)} @ {pick.odds}
-                          </p>
-                          <p style={{color: '#aaa', fontSize: '12px', margin: 0}}>
-                            {pick.league} | {formatDate(pick.date)}
-                          </p>
-                          {selectedPick?.id === pick.id && (
-                            <div style={{marginTop: '15px', paddingTop: '15px', borderTop: '1px solid #4ade80'}}>
-                              <h4 style={{color: '#4ade80', marginTop: 0}}>📊 Il Pick</h4>
-                              <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', fontSize: '12px'}}>
-                                <div>
-                                  <p style={{color: '#aaa', margin: '0 0 5px 0'}}>Probabilità</p>
-                                  <p style={{color: '#00d4ff', fontWeight: 'bold', margin: 0}}>{pick.prob}%</p>
-                                </div>
-                                <div>
-                                  <p style={{color: '#aaa', margin: '0 0 5px 0'}}>Valore</p>
-                                  <p style={{color: '#facc15', fontWeight: 'bold', margin: 0}}>{pick.value}</p>
-                                </div>
-                              </div>
-
-                              <h4 style={{color: '#4ade80', marginTop: '15px'}}>⚡ Segnali</h4>
-                              <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '11px'}}>
-                                <div style={{backgroundColor: '#0a1420', padding: '8px', borderRadius: '4px'}}>
-                                  <p style={{color: '#aaa', margin: '0 0 3px 0'}}>Model Agreement</p>
-                                  <p style={{color: '#4ade80', fontWeight: 'bold', margin: 0}}>{pick.model_agreement}%</p>
-                                </div>
-                                <div style={{backgroundColor: '#0a1420', padding: '8px', borderRadius: '4px'}}>
-                                  <p style={{color: '#aaa', margin: '0 0 3px 0'}}>Infortuni Home</p>
-                                  <p style={{color: pick.inj_h > 10 ? '#ff9800' : '#4ade80', fontWeight: 'bold', margin: 0}}>{pick.inj_h}</p>
-                                </div>
-                              </div>
-
-                              <h4 style={{color: '#4ade80', marginTop: '15px'}}>📰 Notizie</h4>
-                              <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap'}}>
-                                {Object.entries(getNewsLinks(pick.home)).map(([name, url]) => (
-                                  <a
-                                    key={name}
-                                    href={url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    style={{
-                                      padding: '6px 10px',
-                                      backgroundColor: '#0a1420',
-                                      color: '#00d4ff',
-                                      textDecoration: 'none',
-                                      borderRadius: '4px',
-                                      fontSize: '11px',
-                                      fontWeight: 'bold',
-                                      border: '1px solid #00d4ff'
-                                    }}
-                                  >
-                                    {name === 'gazzetta' ? 'Gazzetta' : name === 'sky' ? 'Sky' : name === 'espn' ? 'ESPN' : 'TM'}
-                                  </a>
-                                ))}
-                              </div>
-
-                              {pick.result && getResultBadge(pick) && (
-                                <div style={{marginTop: '15px', paddingTop: '15px', borderTop: '1px solid #4ade80'}}>
-                                  <p style={{color: getResultBadge(pick).color, fontWeight: 'bold', margin: '0 0 5px 0'}}>
-                                    {getResultBadge(pick).text}
-                                  </p>
-                                  <p style={{color: '#4ade80', fontWeight: 'bold', margin: 0}}>
-                                    {getResultBadge(pick).profit}
-                                  </p>
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      ))
-                    ) : (
-                      <p style={{color: '#aaa'}}>Nessuna partita nel Consigliatissimo</p>
-                    )}
-                  </div>
+                  {analysis.consigliatissimo.length > 0 ? (
+                    analysis.consigliatissimo.map((pick, idx) => (
+                      <div
+                        key={idx}
+                        onClick={() => setSelectedPick(pick)}
+                        style={{
+                          padding: '12px',
+                          marginBottom: '10px',
+                          backgroundColor: '#0a1420',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          borderLeft: '3px solid #4ade80',
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a2332'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#0a1420'}
+                      >
+                        <p style={{color: '#fff', fontWeight: 'bold', margin: '0 0 5px 0'}}>
+                          {pick.home} vs {pick.away} | {formatPickLabel(pick)} @ {pick.odds}
+                        </p>
+                        <p style={{color: '#aaa', fontSize: '12px', margin: 0}}>
+                          {pick.league} | {formatDate(pick.date)} ore 19:00 → <span style={{color: '#00d4ff', cursor: 'pointer'}}>clicca per Analisi</span>
+                        </p>
+                      </div>
+                    ))
+                  ) : (
+                    <p style={{color: '#aaa'}}>Nessuna partita nel Consigliatissimo</p>
+                  )}
                 </div>
 
                 {/* VARIANTI */}
                 {Object.keys(analysis.varianti_grouped).length > 0 && (
                   <div style={{padding: '20px', backgroundColor: '#1a2332', borderRadius: '8px'}}>
-                    <h3 style={{color: '#4ade80', marginTop: 0}}>⚙️ Se preferisci alternative: scegli una delle varianti qui sotto</h3>
+                    <h3 style={{color: '#4ade80', marginTop: 0}}>⚙️ VARIANTI</h3>
                     
                     {Object.entries(analysis.varianti_grouped).map(([schedina_name, varianti_list], group_idx) => (
                       <div key={group_idx} style={{marginBottom: '20px', padding: '15px', backgroundColor: '#2a3f4f', borderRadius: '6px'}}>
@@ -454,7 +425,7 @@ function App() {
                               {pick.home} vs {pick.away} | {formatPickLabel(pick)} @ {pick.odds}
                             </p>
                             <p style={{color: '#aaa', fontSize: '11px', margin: 0}}>
-                              {pick.league} | {formatDate(pick.date)}
+                              {pick.league} | {formatDate(pick.date)} ore 19:00 → <span style={{color: '#00d4ff', cursor: 'pointer'}}>clicca per Analisi</span>
                             </p>
                           </div>
                         ))}
@@ -465,8 +436,139 @@ function App() {
               </section>
             )}
 
+            {/* TAB ANALISI */}
+            {picksTab === 'oggi' && selectedPick && (
+              <section className="section">
+                <button
+                  onClick={() => setSelectedPick(null)}
+                  style={{
+                    padding: '10px 20px',
+                    backgroundColor: '#2a3f4f',
+                    color: '#00d4ff',
+                    border: '1px solid #00d4ff',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    marginBottom: '20px',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  ← Torna alle partite
+                </button>
+
+                <div style={{padding: '20px', backgroundColor: '#1a2332', borderRadius: '8px', border: '2px solid #00d4ff'}}>
+                  <h2 style={{color: '#00d4ff', marginTop: 0}}>
+                    {selectedPick.home} vs {selectedPick.away}
+                  </h2>
+                  <p style={{color: '#aaa', margin: '10px 0 0 0'}}>
+                    {selectedPick.league} | {formatDate(selectedPick.date)}
+                  </p>
+
+                  {/* Pick Info */}
+                  <div style={{padding: '15px', backgroundColor: '#2a3f4f', borderRadius: '6px', marginTop: '15px', marginBottom: '15px'}}>
+                    <h4 style={{color: '#4ade80', marginTop: 0}}>📊 Il Pick</h4>
+                    <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px'}}>
+                      <div>
+                        <p style={{color: '#aaa', fontSize: '12px', margin: '0 0 5px 0'}}>Mercato</p>
+                        <p style={{color: '#fff', fontWeight: 'bold', margin: 0}}>{formatPickLabel(selectedPick)}</p>
+                      </div>
+                      <div>
+                        <p style={{color: '#aaa', fontSize: '12px', margin: '0 0 5px 0'}}>Quota</p>
+                        <p style={{color: '#4ade80', fontWeight: 'bold', margin: 0}}>@ {selectedPick.odds}</p>
+                      </div>
+                      <div>
+                        <p style={{color: '#aaa', fontSize: '12px', margin: '0 0 5px 0'}}>Probabilità</p>
+                        <p style={{color: '#00d4ff', fontWeight: 'bold', margin: 0}}>{selectedPick.prob}%</p>
+                      </div>
+                      <div>
+                        <p style={{color: '#aaa', fontSize: '12px', margin: '0 0 5px 0'}}>Valore</p>
+                        <p style={{color: '#facc15', fontWeight: 'bold', margin: 0}}>{selectedPick.value}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Segnali */}
+                  <div style={{padding: '15px', backgroundColor: '#2a3f4f', borderRadius: '6px', marginBottom: '15px'}}>
+                    <h4 style={{color: '#4ade80', marginTop: 0}}>⚡ Segnali</h4>
+                    <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '13px'}}>
+                      <div style={{backgroundColor: '#0a1420', padding: '10px', borderRadius: '4px'}}>
+                        <p style={{color: '#aaa', margin: '0 0 3px 0'}}>Model Agreement</p>
+                        <p style={{color: '#4ade80', fontWeight: 'bold', margin: 0}}>{selectedPick.model_agreement}%</p>
+                      </div>
+                      <div style={{backgroundColor: '#0a1420', padding: '10px', borderRadius: '4px'}}>
+                        <p style={{color: '#aaa', margin: '0 0 3px 0'}}>Ensemble Raw</p>
+                        <p style={{color: '#4ade80', fontWeight: 'bold', margin: 0}}>{selectedPick.ens_raw}</p>
+                      </div>
+                      <div style={{backgroundColor: '#0a1420', padding: '10px', borderRadius: '4px'}}>
+                        <p style={{color: '#aaa', margin: '0 0 3px 0'}}>Infortuni Home</p>
+                        <p style={{color: selectedPick.inj_h > 10 ? '#ff9800' : '#4ade80', fontWeight: 'bold', margin: 0}}>{selectedPick.inj_h}</p>
+                      </div>
+                      <div style={{backgroundColor: '#0a1420', padding: '10px', borderRadius: '4px'}}>
+                        <p style={{color: '#aaa', margin: '0 0 3px 0'}}>Infortuni Away</p>
+                        <p style={{color: selectedPick.inj_a > 10 ? '#ff9800' : '#4ade80', fontWeight: 'bold', margin: 0}}>{selectedPick.inj_a}</p>
+                      </div>
+                      <div style={{backgroundColor: '#0a1420', padding: '10px', borderRadius: '4px'}}>
+                        <p style={{color: '#aaa', margin: '0 0 3px 0'}}>European Week</p>
+                        <p style={{color: selectedPick.european_week ? '#facc15' : '#aaa', fontWeight: 'bold', margin: 0}}>
+                          {selectedPick.european_week ? '🌍 SÌ' : 'No'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* News Links - MONETIZZAZIONE */}
+                  <div style={{padding: '15px', backgroundColor: '#2a3f4f', borderRadius: '6px'}}>
+                    <h4 style={{color: '#4ade80', marginTop: 0}}>📰 Notizie e Approfondimenti</h4>
+                    <p style={{color: '#aaa', fontSize: '12px', marginBottom: '10px'}}>Clicca per leggere le ultime notizie su {selectedPick.home}</p>
+                    <div style={{display: 'flex', gap: '10px', flexWrap: 'wrap'}}>
+                      {Object.entries(getNewsLinks(selectedPick.home)).map(([name, url]) => (
+                        <a
+                          key={name}
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            padding: '8px 12px',
+                            backgroundColor: '#0a1420',
+                            color: '#00d4ff',
+                            textDecoration: 'none',
+                            borderRadius: '4px',
+                            fontSize: '12px',
+                            fontWeight: 'bold',
+                            border: '1px solid #00d4ff'
+                          }}
+                        >
+                          {name === 'gazzetta' ? '📰 Gazzetta' : name === 'sky' ? '📺 Sky' : name === 'espn' ? 'ESPN' : 'Transfermarkt'}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Risultato */}
+                  {selectedPick.result && getResultBadge(selectedPick) && (
+                    <div style={{padding: '15px', backgroundColor: '#2a3f4f', borderRadius: '6px', marginTop: '15px'}}>
+                      <h4 style={{color: '#4ade80', marginTop: 0}}>⚽ Risultato</h4>
+                      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                        <div>
+                          <p style={{color: '#aaa', fontSize: '12px', margin: 0}}>Finali: {selectedPick.result.home_goals} - {selectedPick.result.away_goals}</p>
+                          <p style={{color: '#aaa', fontSize: '12px', margin: '5px 0 0 0'}}>1T: {selectedPick.result.ht_home} - {selectedPick.result.ht_away}</p>
+                        </div>
+                        <div style={{textAlign: 'right'}}>
+                          <p style={{color: getResultBadge(selectedPick).color, fontWeight: 'bold', margin: '0 0 5px 0'}}>
+                            {getResultBadge(selectedPick).text}
+                          </p>
+                          <p style={{color: '#4ade80', fontWeight: 'bold', margin: 0}}>
+                            {getResultBadge(selectedPick).profit}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </section>
+            )}
+
             {/* TAB STORICO */}
-            {activeTab === 'storico' && analysis && (
+            {picksTab === 'storico' && analysis && (
               <section className="section">
                 <h2 style={{color: '#00d4ff', marginBottom: '20px'}}>📜 Storico Schedine {getDaysLabel(selectedDays)}</h2>
                 <div style={{overflowX: 'auto', backgroundColor: '#1a2332', padding: '15px', borderRadius: '8px'}}>
@@ -513,7 +615,7 @@ function App() {
       )}
 
       <footer className="footer">
-        <p>© 2026 ATLAS Betting | v3.0</p>
+        <p>© 2026 ATLAS Betting | v4.0</p>
       </footer>
     </div>
   );
