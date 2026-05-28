@@ -218,10 +218,10 @@ function App() {
             <button 
               className={`tab`}
               onClick={() => { setActiveTab('home'); setPicksData(null); setSelectedPick(null); }}
-              style={{marginLeft: 'auto'}}
-            >
-              ← Indietro
-            </button>
+              style={{marginLeft: 'auto', backgroundColor: '#ff6b6b', color: '#fff'}}
+>
+  ← Indietro
+</button>
           </nav>
 
           <main className="content">
