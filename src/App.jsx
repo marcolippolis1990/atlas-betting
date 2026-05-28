@@ -100,10 +100,10 @@ function App() {
 
   const getDaysLabel = (days) => {
     const labels = {
-      0: 'Oggi (d0)',
-      1: 'Oggi + Domani (d1)',
-      2: 'Oggi + 2 Giorni (d2)',
-      3: 'Oggi + 3 Giorni (d3)'
+      0: 'Schedina Giornaliera',
+      1: 'Schedina su 2 Giorni',
+      2: 'Schedina su 3 Giorni',
+      3: 'Schedina su 4 Giorni'
     };
     return labels[days] || 'd0';
   };
@@ -195,7 +195,7 @@ function App() {
                     textAlign: 'left'
                   }}
                 >
-                  <h3 style={{color: '#ff6b6b', margin: '0 0 10px 0'}}>🔥 Oggi (d0)</h3>
+                  <h3 style={{color: '#ff6b6b', margin: '0 0 10px 0'}}>🔥 Schedina Giornaliera</h3>
                   <p style={{color: '#aaa', fontSize: '12px', margin: '0', lineHeight: '1.4'}}>
                     Massimo rischio, massima frequenza. Gioca OGNI GIORNO le migliori partite di oggi.
                   </p>
@@ -215,7 +215,7 @@ function App() {
                     textAlign: 'left'
                   }}
                 >
-                  <h3 style={{color: '#facc15', margin: '0 0 10px 0'}}>⚡ Oggi + Domani (d1)</h3>
+                  <h3 style={{color: '#facc15', margin: '0 0 10px 0'}}>⚡ Schedina su 2 Giorni</h3>
                   <p style={{color: '#aaa', fontSize: '12px', margin: '0', lineHeight: '1.4'}}>
                     Rischio moderato. Scegli le 2 migliori partite su 2 giorni per aumentare affidabilità.
                   </p>
@@ -235,7 +235,7 @@ function App() {
                     textAlign: 'left'
                   }}
                 >
-                  <h3 style={{color: '#4ade80', margin: '0 0 10px 0'}}>🛡️ Oggi + 2 Giorni (d2)</h3>
+                  <h3 style={{color: '#4ade80', margin: '0 0 10px 0'}}>🛡️ Schedina su 3 Giorni</h3>
                   <p style={{color: '#aaa', fontSize: '12px', margin: '0', lineHeight: '1.4'}}>
                     Basso rischio. Scegli le 3 migliori partite su 3 giorni, massima probabilità di vincita.
                   </p>
@@ -255,7 +255,7 @@ function App() {
                     textAlign: 'left'
                   }}
                 >
-                  <h3 style={{color: '#00d4ff', margin: '0 0 10px 0'}}>🏰 Oggi + 3 Giorni (d3)</h3>
+                  <h3 style={{color: '#00d4ff', margin: '0 0 10px 0'}}>🏰 Schedina su 4 Giorni</h3>
                   <p style={{color: '#aaa', fontSize: '12px', margin: '0', lineHeight: '1.4'}}>
                     Minimo rischio, massima affidabilità. Gioca solo le partite ECCELLENTI su 4 giorni.
                   </p>
