@@ -612,6 +612,25 @@ async def get_picks_today():
     except Exception as e:
         return {"error": f"Errore: {str(e)}"}
 # ============================================================================
+# API - V5HIGH PICKS
+# ============================================================================
+
+@app.get("/api/picks-v5high")
+async def get_v5high_picks():
+    """Legge il file JSON dei pick da v5high"""
+    try:
+        picks_file = Path("backend/data/picks/picks_latest.json")
+        
+        if not picks_file.exists():
+            return []
+        
+        with open(picks_file, 'r') as f:
+            picks = json.load(f)
+        return picks
+    except Exception as e:
+        logger.error(f"Error reading picks: {e}")
+        return []
+# ============================================================================
 # ROOT
 # ============================================================================
 
