@@ -378,9 +378,32 @@ function App() {
           {/* SUPPORTA TAB */}
           {homeTab === 'supporta' && (
             <section className="section">
-              <h2 style={{color: '#00d4ff', marginBottom: '20px'}}>❤️ Supporta ATLAS</h2>
+              <h2 style={{color: '#00d4ff', marginBottom: '20px'}}>❤️ SUPPORTA il progetto ATLAS</h2>
               <div style={{padding: '20px', backgroundColor: '#1a2332', borderRadius: '8px'}}>
-                <p style={{color: '#ccc'}}>Aiuta a migliorare il sistema con una donazione</p>
+                <p style={{color: '#d0d0d0', lineHeight: '1.8', marginBottom: '20px'}}>
+                  ATLAS è nato da una domanda semplice: è possibile prevedere il calcio con affidabilità? Oggi la risposta è sì, ma solo perché investiamo continuamente in dati, ricerca e tecnologia.
+                </p>
+                <p style={{color: '#d0d0d0', lineHeight: '1.8', marginBottom: '20px'}}>
+                  Ogni giorno aggiungiamo nuovi record al nostro database, addestriamo i modelli, ottimizziamo i segnali. È un lavoro costante, e funziona solo se la comunità crede nel progetto.
+                </p>
+                <h3 style={{color: '#4ade80', marginBottom: '15px'}}>Quando doni, finanzi direttamente:</h3>
+                <div style={{marginBottom: '20px'}}>
+                  <div style={{padding: '12px', marginBottom: '10px', backgroundColor: '#2a3f4f', borderRadius: '6px', borderLeft: '3px solid #4ade80'}}>
+                    <p style={{color: '#4ade80', fontWeight: 'bold', margin: '0 0 5px 0'}}>✅ Nuovi dati</p>
+                    <p style={{color: '#d0d0d0', margin: 0, fontSize: '14px'}}>Più partite nel database = modelli più intelligenti = WR più alto. È matematica pura.</p>
+                  </div>
+                  <div style={{padding: '12px', marginBottom: '10px', backgroundColor: '#2a3f4f', borderRadius: '6px', borderLeft: '3px solid #4ade80'}}>
+                    <p style={{color: '#4ade80', fontWeight: 'bold', margin: '0 0 5px 0'}}>✅ Feature esclusive</p>
+                    <p style={{color: '#d0d0d0', margin: 0, fontSize: '14px'}}>Alert real-time quando ATLAS è sicurissimo, pick premium, previsioni su giocatori singoli. Cose che noi stessi usiamo.</p>
+                  </div>
+                  <div style={{padding: '12px', backgroundColor: '#2a3f4f', borderRadius: '6px', borderLeft: '3px solid #4ade80'}}>
+                    <p style={{color: '#4ade80', fontWeight: 'bold', margin: '0 0 5px 0'}}>✅ Ricerca e innovazione</p>
+                    <p style={{color: '#d0d0d0', margin: 0, fontSize: '14px'}}>Server, XGBoost training, feature engineering. Il dietro le quinte che fa funzionare tutto.</p>
+                  </div>
+                </div>
+                <p style={{color: '#d0d0d0', lineHeight: '1.8', marginBottom: '20px', fontStyle: 'italic'}}>
+                  Scegli il tuo contributo e aiutaci a costruire il futuro di ATLAS.
+                </p>
                 <div style={{display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '15px'}}>
                   {[5, 10, 25, 50].map(amt => (
                     <button
