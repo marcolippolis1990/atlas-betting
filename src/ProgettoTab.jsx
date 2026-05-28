@@ -96,7 +96,7 @@ const ProgettoTab = () => {
             <p>
               Il calcio è uno sport meravigliosamente caotico. 22 giocatori in campo, migliaia di decisioni ogni 90 minuti, 
               un pallone che non sa di regole. Ma sotto il caos c'è <strong>struttura</strong>. Ogni squadra ha tendenze. 
-              Ogni giocatore ha limiti e forze. Ogni lega ha caratteristiche distinctive.
+              Ogni giocatore ha limiti e forze. Ogni lega ha caratteristiche <strong>distinte</strong>.
             </p>
 
             <p>
@@ -132,7 +132,7 @@ const ProgettoTab = () => {
 
             <h3>🏆 I Mercati e le Leghe: Non Tutte Uguali</h3>
             <p>
-              La Serie A non è come la Championship. La Liga ha caratteristiche distintive (xG più basso strutturalmente). 
+              La Serie A non è come la Championship. La Liga ha caratteristiche distinte (xG più basso strutturalmente). 
               La Premier League è più imprevedibile.
             </p>
 
@@ -161,8 +161,8 @@ const ProgettoTab = () => {
 
             <p>
               Questo database entra in un modello <strong>XGBoost</strong>, il leader mondiale nel machine learning per dati 
-              strutturati. XGBoost apprende le relazioni nascoste: "Ah, quando una squadra ha xG &lt; 2.7 E un PAI ≥ 0.50 
-              E gioca il giovedì, l'Under vince il 91.2% delle volte."
+              strutturati. XGBoost apprende le relazioni nascoste: "Ah, quando una squadra ha xG &lt; 2.7 e un PAI ≥ 0.50 
+              e gioca il giovedì, l'Under vince il 91.2% delle volte."
             </p>
 
             <p>
@@ -215,8 +215,8 @@ const ProgettoTab = () => {
             </div>
 
             <p className="final-stats">
-              Abbiamo una track record trasparente: <strong>69% win rate globale, -5.1% ROI</strong>. 
-              Non siamo perfetti. Ma siamo consistenti. E ogni settimana miglioriamo.
+              Siamo onesti, trasparenti e in costante miglioramento. Ogni settimana ottimizziamo il sistema, 
+              aggiungiamo nuovi dati e raffiniamo i modelli.
             </p>
           </div>
         </div>
@@ -331,7 +331,7 @@ const ProgettoTab = () => {
             <div className="timeline-item completed">
               <div className="timeline-marker">✅</div>
               <div className="timeline-content">
-                <h3>FASE 1: Fondamenta (Gen-Feb 2026)</h3>
+                <h3>FASE 1: Fondamenta</h3>
                 <ul>
                   <li>Database iniziale: 100 record</li>
                   <li>Ensemble 3 modelli (xG, PAI, H2H)</li>
@@ -344,13 +344,13 @@ const ProgettoTab = () => {
             <div className="timeline-item completed">
               <div className="timeline-marker">✅</div>
               <div className="timeline-content">
-                <h3>FASE 2: Scale-Up (Mar-Apr 2026)</h3>
+                <h3>FASE 2: Scale-Up</h3>
                 <ul>
                   <li>Database: 500 record</li>
                   <li>Ensemble 5 modelli (+ Formation, Overnight)</li>
                   <li>Regole operative 7-step</li>
                   <li>Context check automatico</li>
-                  <li className="highlight">Track record: WR 69% | ROI -5.1%</li>
+                  <li className="highlight">Track record: WR 69%</li>
                 </ul>
               </div>
             </div>
@@ -358,7 +358,7 @@ const ProgettoTab = () => {
             <div className="timeline-item active">
               <div className="timeline-marker">🔄</div>
               <div className="timeline-content">
-                <h3>FASE 3: ML Operativo (Mag 2026) ← SIAMO QUI</h3>
+                <h3>FASE 3: ML Operativo ← SIAMO QUI</h3>
                 <ul>
                   <li>Database ML: 2.920 record</li>
                   <li>XGBoost training AUC 0.552</li>
@@ -373,27 +373,13 @@ const ProgettoTab = () => {
             <div className="timeline-item">
               <div className="timeline-marker">⏳</div>
               <div className="timeline-content">
-                <h3>FASE 4: IA Autonoma (Giu-Lug 2026)</h3>
+                <h3>FASE 4: IA Autonoma</h3>
                 <ul>
                   <li>XGBoost operativo (AUC &gt; 0.60)</li>
                   <li>Previsioni Real-Time</li>
                   <li>Auto-ranking partite per fiducia</li>
                   <li>Newsletter intelligente</li>
                   <li>Bonus: Previsioni player props</li>
-                </ul>
-              </div>
-            </div>
-
-            <div className="timeline-item">
-              <div className="timeline-marker">⏳</div>
-              <div className="timeline-content">
-                <h3>FASE 5: Ecosistema (Ago 2026)</h3>
-                <ul>
-                  <li>Telegram bot (@AtlasBettingBot)</li>
-                  <li>Affiliate Bet365 + Transfermarkt</li>
-                  <li>Blog SEO 20+ articoli</li>
-                  <li>Community Discord</li>
-                  <li className="highlight">Monetizzazione: €9k/mese atteso</li>
                 </ul>
               </div>
             </div>
@@ -462,10 +448,10 @@ const ProgettoTab = () => {
               </div>
 
               <div className="data-growth">
-                <h3>📚 Come Cresceranno i Dati (Previsione)</h3>
+                <h3>📚 Come Cresceranno i Dati</h3>
                 <div className="growth-scenario">
                   <div className="scenario">
-                    <h4>Oggi (maggio 2026)</h4>
+                    <h4>Oggi</h4>
                     <p className="stat">2.920 record</p>
                     <p className="note">Pattern robusti, ma ancora variabilità</p>
                     <p className="error">Margine di errore: ±8-10%</p>
@@ -474,7 +460,7 @@ const ProgettoTab = () => {
                   <div className="arrow">→</div>
 
                   <div className="scenario">
-                    <h4>Tra 2 mesi (luglio)</h4>
+                    <h4>Tra 2 mesi</h4>
                     <p className="stat">5.000 record</p>
                     <p className="note">Modello vede più contesti, più eccezioni</p>
                     <p className="error">Margine di errore: ±4-5%</p>
@@ -483,7 +469,7 @@ const ProgettoTab = () => {
                   <div className="arrow">→</div>
 
                   <div className="scenario">
-                    <h4>Tra 6 mesi (novembre)</h4>
+                    <h4>Tra 6 mesi</h4>
                     <p className="stat">10.000 record</p>
                     <p className="note">Ha visto davvero tutto</p>
                     <p className="error">Margine di errore: ±2-3%</p>
@@ -518,35 +504,6 @@ const ProgettoTab = () => {
           ) : stats ? (
             <>
               <div className="stats-grid">
-                {/* GLOBALI */}
-                <div className="stats-section">
-                  <h3>📊 Dati Globali</h3>
-                  <div className="stat-item">
-                    <span className="label">Record master:</span>
-                    <span className="value">{stats.masterRecord}</span>
-                  </div>
-                  <div className="stat-item">
-                    <span className="label">Win Rate:</span>
-                    <span className="value highlight">{stats.winRate}%</span>
-                  </div>
-                  <div className="stat-item">
-                    <span className="label">ROI:</span>
-                    <span className="value" style={{ color: stats.roi < 0 ? '#ff6b6b' : '#4ade80' }}>
-                      {stats.roi > 0 ? '+' : ''}{stats.roi.toFixed(1)}%
-                    </span>
-                  </div>
-                  <div className="stat-item">
-                    <span className="label">Profit/Loss:</span>
-                    <span className="value" style={{ color: stats.pnl < 0 ? '#ff6b6b' : '#4ade80' }}>
-                      {stats.pnl > 0 ? '+' : ''}€{stats.pnl.toFixed(2)}
-                    </span>
-                  </div>
-                  <div className="stat-item">
-                    <span className="label">Budget rimanente:</span>
-                    <span className="value">€{stats.budget.toFixed(2)} / €500</span>
-                  </div>
-                </div>
-
                 {/* BEST PER LEGA */}
                 <div className="stats-section">
                   <h3>🏆 Migliore per Lega</h3>
@@ -587,28 +544,49 @@ const ProgettoTab = () => {
                   ))}
                 </div>
               </div>
-
-              {/* NOTE FINALI */}
-              <div className="stats-notes">
-                <h3>📝 Note Trasparenza</h3>
-                <p>
-                  Abbiamo una track record trasparente e verificabile. Non nascondiamo i dati negativi (ROI -5.1%). 
-                  Siamo onesti su quello che ATLAS è: un sistema probabilistico che migliora costantemente, 
-                  non un predicatore di certezze.
-                </p>
-                <p>
-                  Ogni settimana i dati si aggiornano. Ogni mese publicheremo un report di trasparenza totale.
-                </p>
-              </div>
             </>
           ) : null}
         </div>
       )}
 
+      {/* FOOTER NAV - Ripeti le 5 sezioni */}
+      <div className="progetto-footer-nav">
+        <button
+          className={`footer-nav-btn ${activeSection === 'narrative' ? 'active' : ''}`}
+          onClick={() => setActiveSection('narrative')}
+        >
+          📖 La Storia
+        </button>
+        <button
+          className={`footer-nav-btn ${activeSection === 'ensemble' ? 'active' : ''}`}
+          onClick={() => setActiveSection('ensemble')}
+        >
+          🧠 I 5 Modelli
+        </button>
+        <button
+          className={`footer-nav-btn ${activeSection === 'roadmap' ? 'active' : ''}`}
+          onClick={() => setActiveSection('roadmap')}
+        >
+          📊 Roadmap
+        </button>
+        <button
+          className={`footer-nav-btn ${activeSection === 'ml' ? 'active' : ''}`}
+          onClick={() => setActiveSection('ml')}
+        >
+          🤖 Machine Learning
+        </button>
+        <button
+          className={`footer-nav-btn ${activeSection === 'stats' ? 'active' : ''}`}
+          onClick={() => setActiveSection('stats')}
+        >
+          📈 Metriche
+        </button>
+      </div>
+
       {/* FOOTER CTA */}
       <div className="progetto-footer">
         <h3>🚀 Pronto per iniziare?</h3>
-        <p>Scopri i pick di oggi e le strategie ATLAS nella tab <strong>SCHEDINE</strong></p>
+        <p>Scopri i pick di oggi e le strategie ATLAS nella tab <a href="#schedine" className="footer-link"><strong>SCHEDINE</strong></a></p>
       </div>
     </div>
   );
