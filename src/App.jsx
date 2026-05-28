@@ -18,7 +18,6 @@ function App() {
       
       if (Array.isArray(data) && data.length > 0) {
         setPicksData(data);
-        setSelectedDays(days);
         setActiveTab('schedina');
       } else {
         setPicksData(null);
