@@ -1,794 +1,505 @@
-[
-  {
-    "date": "2026-04-18",
-    "league": "Serie A",
-    "home": "AS Roma",
-    "away": "Atalanta",
-    "market": "OU35",
-    "pick": "U3.5",
-    "prob": 82,
-    "odds": 1.32,
-    "value": 6.2,
-    "ens_raw": 90,
-    "book_prob": 73.5,
-    "ois": 0,
-    "edge_type": "moderate_edge",
-    "regime": "live",
-    "model_agreement": 82,
-    "implied_vol": 5,
-    "inj_h": 15,
-    "inj_a": 12,
-    "system": "v5_high",
-    "in_schedina": false,
-    "schedina": null,
-    "season_phase": "mid_season",
-    "season_week": null,
-    "european_week": false,
-    "post_international_break": false,
-    "month": 4,
-    "result": {
-      "home_goals": 1,
-      "away_goals": 1,
-      "ht_home": 1,
-      "ht_away": 1,
-      "won": true,
-      "profit": 1.6
+import React, { useState, useEffect } from 'react';
+import './App.css';
+
+function App() {
+  const [activeTab, setActiveTab] = useState('home');
+  const [picksData, setPicksData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [selectedPick, setSelectedPick] = useState(null);
+  const [selectedDays, setSelectedDays] = useState(0);
+
+  const API_URL = process.env.REACT_APP_API_URL || 'https://atlas-betting-production.up.railway.app';
+
+  // Fetch picks data
+  const fetchPicks = async (days) => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/api/picks-v5high`);
+      const data = await response.json();
+      
+      if (Array.isArray(data) && data.length > 0) {
+        setPicksData(data);
+        setSelectedDays(days);
+        setActiveTab('schedina');
+      } else {
+        setPicksData(null);
+      }
+    } catch (err) {
+      console.error('Error fetching picks:', err);
+      setPicksData(null);
     }
-  },
-  {
-    "date": "2026-04-18",
-    "league": "Championship",
-    "home": "Bristol City",
-    "away": "Norwich",
-    "market": "OU15",
-    "pick": "O1.5",
-    "prob": 82,
-    "odds": 1.3,
-    "value": 5.1,
-    "ens_raw": 86.8,
-    "book_prob": 74.6,
-    "ois": 0,
-    "edge_type": "moderate_edge",
-    "regime": "live",
-    "model_agreement": 82,
-    "implied_vol": 5,
-    "inj_h": 15,
-    "inj_a": 15,
-    "system": "v5_high",
-    "in_schedina": false,
-    "schedina": null,
-    "season_phase": "mid_season",
-    "season_week": null,
-    "european_week": false,
-    "post_international_break": false,
-    "month": 4,
-    "result": {
-      "home_goals": 2,
-      "away_goals": 4,
-      "ht_home": 1,
-      "ht_away": 0,
-      "won": true,
-      "profit": 1.5
+    setLoading(false);
+  };
+
+  // Analyze data
+  const analyzePicksData = () => {
+    if (!picksData || !Array.isArray(picksData)) return null;
+
+    const minDate = new Date(Math.min(...picksData.map(p => new Date(p.date).getTime())));
+    const maxDate = new Date(Math.max(...picksData.map(p => new Date(p.date).getTime())));
+    const daysSpan = Math.floor((maxDate - minDate) / (1000 * 60 * 60 * 24));
+
+    const consigliatissimo = picksData.filter(p => p.in_schedina === true);
+    const varianti = picksData.filter(p => p.in_schedina === false);
+
+    // Group varianti by schedina
+    const varianti_grouped = {};
+    varianti.forEach(p => {
+      if (p.schedina) {
+        if (!varianti_grouped[p.schedina]) {
+          varianti_grouped[p.schedina] = [];
+        }
+        varianti_grouped[p.schedina].push(p);
+      }
+    });
+
+    // Check missing days
+    const datesInData = new Set(picksData.map(p => p.date));
+    const missingDays = [];
+    for (let i = 0; i <= daysSpan; i++) {
+      const checkDate = new Date(minDate);
+      checkDate.setDate(checkDate.getDate() + i);
+      const dateStr = checkDate.toISOString().split('T')[0];
+      if (!datesInData.has(dateStr)) {
+        missingDays.push(dateStr);
+      }
     }
-  },
-  {
-    "date": "2026-04-18",
-    "league": "Championship",
-    "home": "Sheffield Wednesday",
-    "away": "Charlton",
-    "market": "OU35",
-    "pick": "U3.5",
-    "prob": 82,
-    "odds": 1.26,
-    "value": 2.6,
-    "ens_raw": 90,
-    "book_prob": 77.0,
-    "ois": 0,
-    "edge_type": "moderate_edge",
-    "regime": "live",
-    "model_agreement": 82,
-    "implied_vol": 5,
-    "inj_h": 15,
-    "inj_a": 15,
-    "system": "v5_high",
-    "in_schedina": false,
-    "schedina": null,
-    "season_phase": "mid_season",
-    "season_week": null,
-    "european_week": false,
-    "post_international_break": false,
-    "month": 4,
-    "result": {
-      "home_goals": 1,
-      "away_goals": 1,
-      "ht_home": 0,
-      "ht_away": 0,
-      "won": true,
-      "profit": 1.3
-    }
-  },
-  {
-    "date": "2026-04-18",
-    "league": "Premier League",
-    "home": "Leeds",
-    "away": "Wolves",
-    "market": "OU35",
-    "pick": "U3.5",
-    "prob": 82,
-    "odds": 1.34,
-    "value": 7.4,
-    "ens_raw": 89.9,
-    "book_prob": 72.4,
-    "ois": 0,
-    "edge_type": "moderate_edge",
-    "regime": "live",
-    "model_agreement": 82,
-    "implied_vol": 5,
-    "inj_h": 15,
-    "inj_a": 15,
-    "system": "v5_high",
-    "in_schedina": false,
-    "schedina": null,
-    "season_phase": "mid_season",
-    "season_week": null,
-    "european_week": false,
-    "post_international_break": false,
-    "month": 4,
-    "result": {
-      "home_goals": 3,
-      "away_goals": 0,
-      "ht_home": 2,
-      "ht_away": 0,
-      "won": true,
-      "profit": 1.7
-    }
-  },
-  {
-    "date": "2026-04-18",
-    "league": "Premier League",
-    "home": "Tottenham",
-    "away": "Brighton",
-    "market": "OU35",
-    "pick": "U3.5",
-    "prob": 82,
-    "odds": 1.45,
-    "value": 13.0,
-    "ens_raw": 85.5,
-    "book_prob": 66.9,
-    "ois": 0,
-    "edge_type": "value",
-    "regime": "live",
-    "model_agreement": 82,
-    "implied_vol": 5,
-    "inj_h": 15,
-    "inj_a": 15,
-    "system": "v5_high",
-    "in_schedina": true,
-    "schedina": "schedina_1_2026-04-18",
-    "season_phase": "mid_season",
-    "season_week": null,
-    "european_week": false,
-    "post_international_break": false,
-    "month": 4,
-    "result": {
-      "home_goals": 2,
-      "away_goals": 2,
-      "ht_home": 1,
-      "ht_away": 1,
-      "won": false,
-      "profit": -5.0
-    }
-  },
-  {
-    "date": "2026-04-18",
-    "league": "Premier League",
-    "home": "Chelsea",
-    "away": "Manchester United",
-    "market": "G1T",
-    "pick": "G1T_Y",
-    "prob": 82,
-    "odds": 1.26,
-    "value": 2.6,
-    "ens_raw": 78,
-    "book_prob": 77.0,
-    "ois": 0,
-    "edge_type": "moderate_edge",
-    "regime": "live",
-    "model_agreement": 82,
-    "implied_vol": 5,
-    "inj_h": 15,
-    "inj_a": 15,
-    "system": "v5_high",
-    "in_schedina": true,
-    "schedina": "schedina_2_2026-04-18",
-    "season_phase": "mid_season",
-    "season_week": null,
-    "european_week": false,
-    "post_international_break": false,
-    "month": 4,
-    "result": {
-      "home_goals": 0,
-      "away_goals": 1,
-      "ht_home": 0,
-      "ht_away": 1,
-      "won": true,
-      "profit": 1.3
-    }
-  },
-  {
-    "date": "2026-04-18",
-    "league": "Championship",
-    "home": "Hull City",
-    "away": "Birmingham",
-    "market": "OU35",
-    "pick": "U3.5",
-    "prob": 81.4,
-    "odds": 1.31,
-    "value": 5.1,
-    "ens_raw": 90,
-    "book_prob": 74.0,
-    "ois": 0,
-    "edge_type": "moderate_edge",
-    "regime": "live",
-    "model_agreement": 81.0,
-    "implied_vol": 5,
-    "inj_h": 15,
-    "inj_a": 12,
-    "system": "v5_high",
-    "in_schedina": false,
-    "schedina": null,
-    "season_phase": "mid_season",
-    "season_week": null,
-    "european_week": false,
-    "post_international_break": false,
-    "month": 4,
-    "result": {
-      "home_goals": 1,
-      "away_goals": 1,
-      "ht_home": 1,
-      "ht_away": 0,
-      "won": true,
-      "profit": 1.55
-    }
-  },
-  {
-    "date": "2026-04-18",
-    "league": "Serie B",
-    "home": "Palermo",
-    "away": "Cesena",
-    "market": "OU35",
-    "pick": "U3.5",
-    "prob": 81.3,
-    "odds": 1.41,
-    "value": 10.4,
-    "ens_raw": 83.4,
-    "book_prob": 68.8,
-    "ois": 0,
-    "edge_type": "value",
-    "regime": "live",
-    "model_agreement": 81.0,
-    "implied_vol": 5,
-    "inj_h": 0,
-    "inj_a": 0,
-    "system": "v5_high",
-    "in_schedina": false,
-    "schedina": null,
-    "season_phase": "mid_season",
-    "season_week": null,
-    "european_week": false,
-    "post_international_break": false,
-    "month": 4,
-    "result": {
-      "home_goals": 2,
-      "away_goals": 0,
-      "ht_home": 1,
-      "ht_away": 0,
-      "won": true,
-      "profit": 2.05
-    }
-  },
-  {
-    "date": "2026-04-18",
-    "league": "Serie B",
-    "home": "Modena",
-    "away": "Frosinone",
-    "market": "OU35",
-    "pick": "U3.5",
-    "prob": 80.8,
-    "odds": 1.44,
-    "value": 11.4,
-    "ens_raw": 90,
-    "book_prob": 67.4,
-    "ois": 0,
-    "edge_type": "value",
-    "regime": "live",
-    "model_agreement": 81.0,
-    "implied_vol": 5,
-    "inj_h": 0,
-    "inj_a": 0,
-    "system": "v5_high",
-    "in_schedina": false,
-    "schedina": null,
-    "season_phase": "mid_season",
-    "season_week": null,
-    "european_week": false,
-    "post_international_break": false,
-    "month": 4,
-    "result": {
-      "home_goals": 1,
-      "away_goals": 2,
-      "ht_home": 1,
-      "ht_away": 0,
-      "won": true,
-      "profit": 2.2
-    }
-  },
-  {
-    "date": "2026-04-18",
-    "league": "Championship",
-    "home": "Derby",
-    "away": "Oxford United",
-    "market": "OU35",
-    "pick": "U3.5",
-    "prob": 80.6,
-    "odds": 1.28,
-    "value": 2.5,
-    "ens_raw": 86.2,
-    "book_prob": 75.8,
-    "ois": 0,
-    "edge_type": "moderate_edge",
-    "regime": "live",
-    "model_agreement": 81.0,
-    "implied_vol": 5,
-    "inj_h": 15,
-    "inj_a": 15,
-    "system": "v5_high",
-    "in_schedina": false,
-    "schedina": null,
-    "season_phase": "mid_season",
-    "season_week": null,
-    "european_week": false,
-    "post_international_break": false,
-    "month": 4,
-    "result": {
-      "home_goals": 1,
-      "away_goals": 0,
-      "ht_home": 1,
-      "ht_away": 0,
-      "won": true,
-      "profit": 1.4
-    }
-  },
-  {
-    "date": "2026-04-18",
-    "league": "Championship",
-    "home": "Watford",
-    "away": "Sheffield Utd",
-    "market": "OU35",
-    "pick": "U3.5",
-    "prob": 80.3,
-    "odds": 1.38,
-    "value": 7.8,
-    "ens_raw": 88.8,
-    "book_prob": 70.3,
-    "ois": 0,
-    "edge_type": "moderate_edge",
-    "regime": "live",
-    "model_agreement": 80.0,
-    "implied_vol": 5,
-    "inj_h": 15,
-    "inj_a": 15,
-    "system": "v5_high",
-    "in_schedina": true,
-    "schedina": "schedina_1_2026-04-18",
-    "season_phase": "mid_season",
-    "season_week": null,
-    "european_week": false,
-    "post_international_break": false,
-    "month": 4,
-    "result": {
-      "home_goals": 0,
-      "away_goals": 2,
-      "ht_home": 0,
-      "ht_away": 0,
-      "won": true,
-      "profit": 1.9
-    }
-  },
-  {
-    "date": "2026-04-18",
-    "league": "Serie B",
-    "home": "Mantova",
-    "away": "Avellino",
-    "market": "OU15",
-    "pick": "O1.5",
-    "prob": 79.0,
-    "odds": 1.33,
-    "value": 3.9,
-    "ens_raw": 77.7,
-    "book_prob": 72.9,
-    "ois": 0,
-    "edge_type": "moderate_edge",
-    "regime": "live",
-    "model_agreement": 79.0,
-    "implied_vol": 5,
-    "inj_h": 0,
-    "inj_a": 0,
-    "system": "v5_high",
-    "in_schedina": false,
-    "schedina": null,
-    "season_phase": "mid_season",
-    "season_week": null,
-    "european_week": false,
-    "post_international_break": false,
-    "month": 4,
-    "result": {
-      "home_goals": 0,
-      "away_goals": 2,
-      "ht_home": 0,
-      "ht_away": 0,
-      "won": true,
-      "profit": 1.65
-    }
-  },
-  {
-    "date": "2026-04-18",
-    "league": "Serie B",
-    "home": "Bari",
-    "away": "Venezia",
-    "market": "OU35",
-    "pick": "U3.5",
-    "prob": 78.8,
-    "odds": 1.52,
-    "value": 13.0,
-    "ens_raw": 82.3,
-    "book_prob": 63.8,
-    "ois": 0,
-    "edge_type": "value",
-    "regime": "live",
-    "model_agreement": 79.0,
-    "implied_vol": 5,
-    "inj_h": 0,
-    "inj_a": 0,
-    "system": "v5_high",
-    "in_schedina": true,
-    "schedina": "schedina_1_2026-04-18",
-    "season_phase": "mid_season",
-    "season_week": null,
-    "european_week": false,
-    "post_international_break": false,
-    "month": 4,
-    "result": {
-      "home_goals": 0,
-      "away_goals": 3,
-      "ht_home": 0,
-      "ht_away": 2,
-      "won": true,
-      "profit": 2.6
-    }
-  },
-  {
-    "date": "2026-04-18",
-    "league": "Serie B",
-    "home": "Modena",
-    "away": "Frosinone",
-    "market": "G1T",
-    "pick": "G1T_Y",
-    "prob": 78.2,
-    "odds": 1.32,
-    "value": 2.4,
-    "ens_raw": 76.5,
-    "book_prob": 73.5,
-    "ois": 0,
-    "edge_type": "moderate_edge",
-    "regime": "live",
-    "model_agreement": 78.0,
-    "implied_vol": 5,
-    "inj_h": 0,
-    "inj_a": 0,
-    "system": "v5_high",
-    "in_schedina": false,
-    "schedina": null,
-    "season_phase": "mid_season",
-    "season_week": null,
-    "european_week": false,
-    "post_international_break": false,
-    "month": 4,
-    "result": {
-      "home_goals": 1,
-      "away_goals": 2,
-      "ht_home": 1,
-      "ht_away": 0,
-      "won": true,
-      "profit": 1.6
-    }
-  },
-  {
-    "date": "2026-04-18",
-    "league": "Championship",
-    "home": "Bristol City",
-    "away": "Norwich",
-    "market": "G1T",
-    "pick": "G1T_Y",
-    "prob": 77.2,
-    "odds": 1.39,
-    "value": 5.3,
-    "ens_raw": 75.0,
-    "book_prob": 69.8,
-    "ois": 0,
-    "edge_type": "moderate_edge",
-    "regime": "live",
-    "model_agreement": 77.0,
-    "implied_vol": 5,
-    "inj_h": 15,
-    "inj_a": 15,
-    "system": "v5_high",
-    "in_schedina": true,
-    "schedina": "schedina_2_2026-04-18",
-    "season_phase": "mid_season",
-    "season_week": null,
-    "european_week": false,
-    "post_international_break": false,
-    "month": 4,
-    "result": {
-      "home_goals": 2,
-      "away_goals": 4,
-      "ht_home": 1,
-      "ht_away": 0,
-      "won": true,
-      "profit": 1.95
-    }
-  },
-  {
-    "date": "2026-04-18",
-    "league": "Serie B",
-    "home": "Juve Stabia",
-    "away": "Catanzaro",
-    "market": "G1T",
-    "pick": "G1T_Y",
-    "prob": 76.4,
-    "odds": 1.42,
-    "value": 6.0,
-    "ens_raw": 76.5,
-    "book_prob": 68.3,
-    "ois": 0,
-    "edge_type": "moderate_edge",
-    "regime": "live",
-    "model_agreement": 76.0,
-    "implied_vol": 5,
-    "inj_h": 0,
-    "inj_a": 0,
-    "system": "v5_high",
-    "in_schedina": true,
-    "schedina": "schedina_2_2026-04-18",
-    "season_phase": "mid_season",
-    "season_week": null,
-    "european_week": false,
-    "post_international_break": false,
-    "month": 4,
-    "result": {
-      "home_goals": 1,
-      "away_goals": 1,
-      "ht_home": 1,
-      "ht_away": 0,
-      "won": true,
-      "profit": 2.1
-    }
-  },
-  {
-    "date": "2026-04-18",
-    "league": "Serie B",
-    "home": "Mantova",
-    "away": "Avellino",
-    "market": "G1T",
-    "pick": "G1T_Y",
-    "prob": 75.7,
-    "odds": 1.42,
-    "value": 5.2,
-    "ens_raw": 73.5,
-    "book_prob": 68.3,
-    "ois": 0,
-    "edge_type": "moderate_edge",
-    "regime": "live",
-    "model_agreement": 76.0,
-    "implied_vol": 5,
-    "inj_h": 0,
-    "inj_a": 0,
-    "system": "v5_high",
-    "in_schedina": false,
-    "schedina": null,
-    "season_phase": "mid_season",
-    "season_week": null,
-    "european_week": false,
-    "post_international_break": false,
-    "month": 4,
-    "result": {
-      "home_goals": 0,
-      "away_goals": 2,
-      "ht_home": 0,
-      "ht_away": 0,
-      "won": false,
-      "profit": -5.0
-    }
-  },
-  {
-    "date": "2026-04-18",
-    "league": "Championship",
-    "home": "Wrexham",
-    "away": "Stoke City",
-    "market": "OU35",
-    "pick": "U3.5",
-    "prob": 74.3,
-    "odds": 1.4,
-    "value": 2.8,
-    "ens_raw": 81.6,
-    "book_prob": 69.3,
-    "ois": 0,
-    "edge_type": "moderate_edge",
-    "regime": "live",
-    "model_agreement": 74.0,
-    "implied_vol": 5,
-    "inj_h": 15,
-    "inj_a": 15,
-    "system": "v5_high",
-    "in_schedina": false,
-    "schedina": null,
-    "season_phase": "mid_season",
-    "season_week": null,
-    "european_week": false,
-    "post_international_break": false,
-    "month": 4,
-    "result": {
-      "home_goals": 2,
-      "away_goals": 0,
-      "ht_home": 2,
-      "ht_away": 0,
-      "won": true,
-      "profit": 2.0
-    }
-  },
-  {
-    "date": "2026-04-18",
-    "league": "Serie A",
-    "home": "AS Roma",
-    "away": "Atalanta",
-    "market": "G1T",
-    "pick": "G1T_Y",
-    "prob": 73.5,
-    "odds": 1.4,
-    "value": 2.1,
-    "ens_raw": 69.7,
-    "book_prob": 69.3,
-    "ois": 0,
-    "edge_type": "moderate_edge",
-    "regime": "live",
-    "model_agreement": 74.0,
-    "implied_vol": 5,
-    "inj_h": 15,
-    "inj_a": 12,
-    "system": "v5_high",
-    "in_schedina": false,
-    "schedina": null,
-    "season_phase": "mid_season",
-    "season_week": null,
-    "european_week": false,
-    "post_international_break": false,
-    "month": 4,
-    "result": {
-      "home_goals": 1,
-      "away_goals": 1,
-      "ht_home": 1,
-      "ht_away": 1,
-      "won": true,
-      "profit": 2.0
-    }
-  },
-  {
-    "date": "2026-04-18",
-    "league": "Championship",
-    "home": "Portsmouth",
-    "away": "Leicester",
-    "market": "G1T",
-    "pick": "G1T_Y",
-    "prob": 72.8,
-    "odds": 1.46,
-    "value": 4.3,
-    "ens_raw": 78,
-    "book_prob": 66.4,
-    "ois": 0,
-    "edge_type": "moderate_edge",
-    "regime": "live",
-    "model_agreement": 73.0,
-    "implied_vol": 5,
-    "inj_h": 15,
-    "inj_a": 12,
-    "system": "v5_high",
-    "in_schedina": false,
-    "schedina": null,
-    "season_phase": "mid_season",
-    "season_week": null,
-    "european_week": false,
-    "post_international_break": false,
-    "month": 4,
-    "result": {
-      "home_goals": 1,
-      "away_goals": 0,
-      "ht_home": 0,
-      "ht_away": 0,
-      "won": false,
-      "profit": -5.0
-    }
-  },
-  {
-    "date": "2026-04-18",
-    "league": "Serie A",
-    "home": "Udinese",
-    "away": "Parma",
-    "market": "G1T",
-    "pick": "G1T_Y",
-    "prob": 71.2,
-    "odds": 1.5,
-    "value": 4.6,
-    "ens_raw": 68.6,
-    "book_prob": 64.7,
-    "ois": 0,
-    "edge_type": "moderate_edge",
-    "regime": "live",
-    "model_agreement": 71.0,
-    "implied_vol": 5,
-    "inj_h": 15,
-    "inj_a": 12,
-    "system": "v5_high",
-    "in_schedina": true,
-    "schedina": "schedina_2_2026-04-18",
-    "season_phase": "mid_season",
-    "season_week": null,
-    "european_week": false,
-    "post_international_break": false,
-    "month": 4,
-    "result": {
-      "home_goals": 0,
-      "away_goals": 1,
-      "ht_home": 0,
-      "ht_away": 0,
-      "won": false,
-      "profit": -5.0
-    }
-  },
-  {
-    "date": "2026-04-18",
-    "league": "Bundesliga",
-    "home": "Werder Bremen",
-    "away": "Hamburger SV",
-    "market": "DC",
-    "pick": "X2",
-    "prob": 60.4,
-    "odds": 1.84,
-    "value": 6.0,
-    "ens_raw": 71.5,
-    "book_prob": 52.7,
-    "ois": 0,
-    "edge_type": "moderate_edge",
-    "regime": "live",
-    "model_agreement": 60.0,
-    "implied_vol": 5,
-    "inj_h": 15,
-    "inj_a": 15,
-    "system": "v5_high",
-    "in_schedina": false,
-    "schedina": null,
-    "season_phase": "mid_season",
-    "season_week": null,
-    "european_week": false,
-    "post_international_break": false,
-    "month": 4,
-    "result": {
-      "home_goals": 3,
-      "away_goals": 1,
-      "ht_home": 1,
-      "ht_away": 1,
-      "won": false,
-      "profit": -5.0
-    }
-  }
-]
+
+    return {
+      consigliatissimo,
+      varianti_grouped,
+      minDate,
+      maxDate,
+      daysSpan,
+      missingDays,
+      allPicks: picksData
+    };
+  };
+
+  const analysis = analyzePicksData();
+
+  // Format date
+  const formatDate = (dateStr) => {
+    const date = new Date(dateStr + 'T00:00:00');
+    const day = date.getDate();
+    const month = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'][date.getMonth()];
+    return `${day} ${month}`;
+  };
+
+  // Format pick label
+  const formatPickLabel = (pick) => {
+    const marketLabel = pick.market === 'OU35' ? (pick.pick === 'U3.5' ? 'Under 3.5' : 'Over 3.5') :
+                       pick.market === 'OU15' ? (pick.pick === 'O1.5' ? 'Over 1.5' : 'Under 1.5') :
+                       pick.market === 'G1T' ? 'Goal in 1T' :
+                       pick.market === 'BTTS' ? 'BTTS' :
+                       pick.market === 'DC' ? pick.pick : pick.market;
+    return marketLabel;
+  };
+
+  // Get news links
+  const getNewsLinks = (team, league) => {
+    const encodedTeam = encodeURIComponent(team);
+    return {
+      gazzetta: `https://www.gazzetta.it/calcio/ricerca?q=${encodedTeam}`,
+      sky: `https://sport.sky.it/calcio/ricerca?q=${encodedTeam}`,
+      espn: `https://www.espn.com/soccer/search?query=${encodedTeam}`,
+      tm: `https://www.transfermarkt.com/search/ergebnis/search?query=${encodedTeam}`
+    };
+  };
+
+  // Result badge
+  const getResultBadge = (pick) => {
+    if (!pick.result) return null;
+    const { won, profit } = pick.result;
+    return {
+      text: won ? '✅ VINTO' : '❌ PERSO',
+      color: won ? '#4ade80' : '#ff6b6b',
+      profit: `${profit > 0 ? '+' : ''}€${profit.toFixed(2)}`
+    };
+  };
+
+  return (
+    <div className="app">
+      <header className="header">
+        <h1>⚽ ATLAS Betting</h1>
+        <p>Sistema di analisi calcistica avanzato</p>
+      </header>
+
+      {activeTab === 'home' && (
+        <main className="content">
+          <section className="section">
+            <h2 style={{color: '#00d4ff', marginBottom: '30px'}}>🎯 Scegli l'orizzonte temporale</h2>
+            
+            <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '40px'}}>
+              <button
+                onClick={() => fetchPicks(0)}
+                style={{
+                  padding: '30px 20px',
+                  backgroundColor: '#1a2332',
+                  border: '2px solid #00d4ff',
+                  borderRadius: '8px',
+                  color: '#fff',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                  fontWeight: 'bold'
+                }}
+              >
+                📅 Oggi (d0)
+                <p style={{color: '#aaa', fontSize: '12px', margin: '10px 0 0 0'}}>Solo le partite di oggi</p>
+              </button>
+
+              <button
+                onClick={() => fetchPicks(1)}
+                style={{
+                  padding: '30px 20px',
+                  backgroundColor: '#1a2332',
+                  border: '2px solid #00d4ff',
+                  borderRadius: '8px',
+                  color: '#fff',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                  fontWeight: 'bold'
+                }}
+              >
+                📅 Oggi + Domani (d1)
+                <p style={{color: '#aaa', fontSize: '12px', margin: '10px 0 0 0'}}>Le migliori su 2 giorni</p>
+              </button>
+
+              <button
+                onClick={() => fetchPicks(2)}
+                style={{
+                  padding: '30px 20px',
+                  backgroundColor: '#1a2332',
+                  border: '2px solid #00d4ff',
+                  borderRadius: '8px',
+                  color: '#fff',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                  fontWeight: 'bold'
+                }}
+              >
+                📅 Oggi + 2 Giorni (d2)
+                <p style={{color: '#aaa', fontSize: '12px', margin: '10px 0 0 0'}}>Le migliori su 3 giorni</p>
+              </button>
+
+              <button
+                onClick={() => fetchPicks(3)}
+                style={{
+                  padding: '30px 20px',
+                  backgroundColor: '#1a2332',
+                  border: '2px solid #00d4ff',
+                  borderRadius: '8px',
+                  color: '#fff',
+                  cursor: 'pointer',
+                  fontSize: '16px',
+                  fontWeight: 'bold'
+                }}
+              >
+                📅 Oggi + 3 Giorni (d3)
+                <p style={{color: '#aaa', fontSize: '12px', margin: '10px 0 0 0'}}>Le migliori su 4 giorni</p>
+              </button>
+            </div>
+
+            {loading && <p style={{color: '#aaa'}}>⏳ Caricamento...</p>}
+          </section>
+        </main>
+      )}
+
+      {picksData && activeTab !== 'home' && (
+        <>
+          <nav className="nav-tabs">
+            <button 
+              className={`tab ${activeTab === 'schedina' ? 'active' : ''}`}
+              onClick={() => setActiveTab('schedina')}
+            >
+              🎯 Schedina
+            </button>
+            <button 
+              className={`tab ${activeTab === 'dettagli' ? 'active' : ''}`}
+              onClick={() => setActiveTab('dettagli')}
+            >
+              🔍 Dettagli
+            </button>
+            <button 
+              className={`tab ${activeTab === 'stats' ? 'active' : ''}`}
+              onClick={() => setActiveTab('stats')}
+            >
+              📊 Stats
+            </button>
+            <button 
+              className={`tab ${activeTab === 'storico' ? 'active' : ''}`}
+              onClick={() => setActiveTab('storico')}
+            >
+              📜 Storico
+            </button>
+            <button 
+              className={`tab ${activeTab === 'home' ? 'active' : ''}`}
+              onClick={() => { setActiveTab('home'); setSelectedPick(null); }}
+            >
+              ← Indietro
+            </button>
+          </nav>
+
+          <main className="content">
+            {/* TAB SCHEDINA */}
+            {activeTab === 'schedina' && analysis && (
+              <section className="section">
+                <div style={{marginBottom: '30px', padding: '20px', backgroundColor: '#1a2332', borderRadius: '8px', border: '2px solid #00d4ff'}}>
+                  <h2 style={{color: '#00d4ff', marginTop: 0}}>🎯 CONSIGLIATISSIMO</h2>
+                  
+                  {analysis.missingDays.length > 0 && (
+                    <div style={{padding: '10px', backgroundColor: '#ff6b6b', color: '#fff', borderRadius: '4px', marginBottom: '15px', fontSize: '12px'}}>
+                      ⚠️ Nessuna schedina il {analysis.missingDays.map(d => formatDate(d)).join(', ')}
+                    </div>
+                  )}
+
+                  <div style={{backgroundColor: '#2a3f4f', padding: '15px', borderRadius: '6px'}}>
+                    {analysis.consigliatissimo.map((pick, idx) => (
+                      <div
+                        key={idx}
+                        onClick={() => { setSelectedPick(pick); setActiveTab('dettagli'); }}
+                        style={{
+                          padding: '12px',
+                          marginBottom: '10px',
+                          backgroundColor: '#0a1420',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          borderLeft: '3px solid #4ade80',
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a2332'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#0a1420'}
+                      >
+                        <p style={{color: '#fff', fontWeight: 'bold', margin: '0 0 5px 0'}}>
+                          {pick.home} vs {pick.away} | {formatPickLabel(pick)} @ {pick.odds}
+                        </p>
+                        <p style={{color: '#aaa', fontSize: '12px', margin: 0}}>
+                          {pick.league} | {formatDate(pick.date)}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* VARIANTI */}
+                {Object.keys(analysis.varianti_grouped).length > 0 && (
+                  <div style={{padding: '20px', backgroundColor: '#1a2332', borderRadius: '8px'}}>
+                    <h3 style={{color: '#4ade80', marginTop: 0}}>⚙️ Se preferisci alternative: scegli una delle varianti qui sotto</h3>
+                    
+                    {Object.entries(analysis.varianti_grouped).map(([schedina_name, varianti_list], group_idx) => (
+                      <div key={group_idx} style={{marginBottom: '20px', padding: '15px', backgroundColor: '#2a3f4f', borderRadius: '6px'}}>
+                        <h4 style={{color: '#facc15', marginTop: 0, marginBottom: '12px'}}>
+                          Variante {group_idx + 1}
+                        </h4>
+                        {varianti_list.map((pick, idx) => (
+                          <div
+                            key={idx}
+                            onClick={() => { setSelectedPick(pick); setActiveTab('dettagli'); }}
+                            style={{
+                              padding: '10px',
+                              marginBottom: '8px',
+                              backgroundColor: '#0a1420',
+                              borderRadius: '4px',
+                              cursor: 'pointer',
+                              borderLeft: '3px solid #facc15',
+                              transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a2332'}
+                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#0a1420'}
+                          >
+                            <p style={{color: '#fff', fontWeight: 'bold', margin: '0 0 3px 0', fontSize: '13px'}}>
+                              {pick.home} vs {pick.away} | {formatPickLabel(pick)} @ {pick.odds}
+                            </p>
+                            <p style={{color: '#aaa', fontSize: '11px', margin: 0}}>
+                              {pick.league} | {formatDate(pick.date)}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+            )}
+
+            {/* TAB DETTAGLI */}
+            {activeTab === 'dettagli' && selectedPick && (
+              <section className="section">
+                <div style={{padding: '20px', backgroundColor: '#1a2332', borderRadius: '8px', marginBottom: '20px', border: '2px solid #00d4ff'}}>
+                  <h2 style={{color: '#00d4ff', marginTop: 0}}>
+                    {selectedPick.home} vs {selectedPick.away}
+                  </h2>
+                  <p style={{color: '#aaa', margin: '10px 0 0 0'}}>
+                    {selectedPick.league} | {formatDate(selectedPick.date)}
+                  </p>
+
+                  {/* Pick Info */}
+                  <div style={{padding: '15px', backgroundColor: '#2a3f4f', borderRadius: '6px', marginTop: '15px', marginBottom: '15px'}}>
+                    <h4 style={{color: '#4ade80', marginTop: 0}}>📊 Il Pick</h4>
+                    <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px'}}>
+                      <div>
+                        <p style={{color: '#aaa', fontSize: '12px', margin: '0 0 5px 0'}}>Mercato</p>
+                        <p style={{color: '#fff', fontWeight: 'bold', margin: 0}}>{formatPickLabel(selectedPick)}</p>
+                      </div>
+                      <div>
+                        <p style={{color: '#aaa', fontSize: '12px', margin: '0 0 5px 0'}}>Quota</p>
+                        <p style={{color: '#4ade80', fontWeight: 'bold', margin: 0}}>@ {selectedPick.odds}</p>
+                      </div>
+                      <div>
+                        <p style={{color: '#aaa', fontSize: '12px', margin: '0 0 5px 0'}}>Probabilità</p>
+                        <p style={{color: '#00d4ff', fontWeight: 'bold', margin: 0}}>{selectedPick.prob}%</p>
+                      </div>
+                      <div>
+                        <p style={{color: '#aaa', fontSize: '12px', margin: '0 0 5px 0'}}>Valore</p>
+                        <p style={{color: '#facc15', fontWeight: 'bold', margin: 0}}>{selectedPick.value}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Segnali */}
+                  <div style={{padding: '15px', backgroundColor: '#2a3f4f', borderRadius: '6px', marginBottom: '15px'}}>
+                    <h4 style={{color: '#4ade80', marginTop: 0}}>⚡ Segnali</h4>
+                    <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '13px'}}>
+                      <div style={{backgroundColor: '#0a1420', padding: '10px', borderRadius: '4px'}}>
+                        <p style={{color: '#aaa', margin: '0 0 3px 0'}}>Model Agreement</p>
+                        <p style={{color: '#4ade80', fontWeight: 'bold', margin: 0}}>{selectedPick.model_agreement}%</p>
+                      </div>
+                      <div style={{backgroundColor: '#0a1420', padding: '10px', borderRadius: '4px'}}>
+                        <p style={{color: '#aaa', margin: '0 0 3px 0'}}>Ensemble Raw</p>
+                        <p style={{color: '#4ade80', fontWeight: 'bold', margin: 0}}>{selectedPick.ens_raw}</p>
+                      </div>
+                      <div style={{backgroundColor: '#0a1420', padding: '10px', borderRadius: '4px'}}>
+                        <p style={{color: '#aaa', margin: '0 0 3px 0'}}>Infortuni Home</p>
+                        <p style={{color: selectedPick.inj_h > 10 ? '#ff9800' : '#4ade80', fontWeight: 'bold', margin: 0}}>{selectedPick.inj_h}</p>
+                      </div>
+                      <div style={{backgroundColor: '#0a1420', padding: '10px', borderRadius: '4px'}}>
+                        <p style={{color: '#aaa', margin: '0 0 3px 0'}}>Infortuni Away</p>
+                        <p style={{color: selectedPick.inj_a > 10 ? '#ff9800' : '#4ade80', fontWeight: 'bold', margin: 0}}>{selectedPick.inj_a}</p>
+                      </div>
+                      <div style={{backgroundColor: '#0a1420', padding: '10px', borderRadius: '4px'}}>
+                        <p style={{color: '#aaa', margin: '0 0 3px 0'}}>Edge Type</p>
+                        <p style={{color: '#00d4ff', fontWeight: 'bold', margin: 0, fontSize: '11px'}}>{selectedPick.edge_type}</p>
+                      </div>
+                      <div style={{backgroundColor: '#0a1420', padding: '10px', borderRadius: '4px'}}>
+                        <p style={{color: '#aaa', margin: '0 0 3px 0'}}>European Week</p>
+                        <p style={{color: selectedPick.european_week ? '#facc15' : '#aaa', fontWeight: 'bold', margin: 0}}>
+                          {selectedPick.european_week ? '🌍 SÌ' : 'No'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* News Links */}
+                  <div style={{padding: '15px', backgroundColor: '#2a3f4f', borderRadius: '6px'}}>
+                    <h4 style={{color: '#4ade80', marginTop: 0}}>📰 Notizie</h4>
+                    <div style={{display: 'flex', gap: '10px', flexWrap: 'wrap'}}>
+                      {Object.entries(getNewsLinks(selectedPick.home, selectedPick.league)).map(([name, url]) => (
+                        <a
+                          key={name}
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            padding: '8px 12px',
+                            backgroundColor: '#0a1420',
+                            color: '#00d4ff',
+                            textDecoration: 'none',
+                            borderRadius: '4px',
+                            fontSize: '12px',
+                            fontWeight: 'bold',
+                            border: '1px solid #00d4ff'
+                          }}
+                        >
+                          {name === 'gazzetta' ? '📰 Gazzetta' : name === 'sky' ? '📺 Sky' : name === 'espn' ? 'ESPN' : 'TM'}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Risultato */}
+                  {selectedPick.result && getResultBadge(selectedPick) && (
+                    <div style={{padding: '15px', backgroundColor: '#2a3f4f', borderRadius: '6px', marginTop: '15px'}}>
+                      <h4 style={{color: '#4ade80', marginTop: 0}}>⚽ Risultato</h4>
+                      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                        <div>
+                          <p style={{color: '#aaa', fontSize: '12px', margin: 0}}>Finali: {selectedPick.result.home_goals} - {selectedPick.result.away_goals}</p>
+                          <p style={{color: '#aaa', fontSize: '12px', margin: '5px 0 0 0'}}>1T: {selectedPick.result.ht_home} - {selectedPick.result.ht_away}</p>
+                        </div>
+                        <div style={{textAlign: 'right'}}>
+                          <p style={{color: getResultBadge(selectedPick).color, fontWeight: 'bold', margin: '0 0 5px 0'}}>
+                            {getResultBadge(selectedPick).text}
+                          </p>
+                          <p style={{color: '#4ade80', fontWeight: 'bold', margin: 0}}>
+                            {getResultBadge(selectedPick).profit}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </section>
+            )}
+
+            {/* TAB STATS */}
+            {activeTab === 'stats' && (
+              <section className="section">
+                <h2 style={{color: '#00d4ff'}}>📊 Statistiche</h2>
+                <p style={{color: '#aaa'}}>Analisi performance per lega, mercato e pattern — sezione in sviluppo</p>
+              </section>
+            )}
+
+            {/* TAB STORICO */}
+            {activeTab === 'storico' && analysis && (
+              <section className="section">
+                <h2 style={{color: '#00d4ff', marginBottom: '20px'}}>📜 Storico Pick</h2>
+                <div style={{overflowX: 'auto', backgroundColor: '#1a2332', padding: '15px', borderRadius: '8px'}}>
+                  <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '12px'}}>
+                    <thead>
+                      <tr style={{backgroundColor: '#0a1420', borderBottom: '2px solid #00d4ff'}}>
+                        <th style={{padding: '10px', textAlign: 'left', color: '#00d4ff'}}>Data</th>
+                        <th style={{padding: '10px', textAlign: 'left', color: '#00d4ff'}}>Partita</th>
+                        <th style={{padding: '10px', textAlign: 'left', color: '#00d4ff'}}>Pick</th>
+                        <th style={{padding: '10px', textAlign: 'center', color: '#00d4ff'}}>Quota</th>
+                        <th style={{padding: '10px', textAlign: 'center', color: '#00d4ff'}}>Risultato</th>
+                        <th style={{padding: '10px', textAlign: 'center', color: '#00d4ff'}}>Status</th>
+                        <th style={{padding: '10px', textAlign: 'right', color: '#00d4ff'}}>Profit</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {analysis.allPicks.map((pick, idx) => {
+                        const badge = getResultBadge(pick);
+                        return (
+                          <tr key={idx} style={{borderBottom: '1px solid #2a3f4f'}}>
+                            <td style={{padding: '10px', color: '#aaa'}}>{formatDate(pick.date)}</td>
+                            <td style={{padding: '10px', color: '#ccc'}}>{pick.home} vs {pick.away}</td>
+                            <td style={{padding: '10px', color: '#00d4ff'}}>{formatPickLabel(pick)}</td>
+                            <td style={{padding: '10px', textAlign: 'center', color: '#4ade80'}}>@ {pick.odds}</td>
+                            <td style={{padding: '10px', textAlign: 'center', color: '#aaa', fontSize: '11px'}}>
+                              {pick.result ? `${pick.result.home_goals}-${pick.result.away_goals}` : '-'}
+                            </td>
+                            <td style={{padding: '10px', textAlign: 'center', color: badge?.color || '#aaa'}}>
+                              {badge?.text || '-'}
+                            </td>
+                            <td style={{padding: '10px', textAlign: 'right', color: pick.result?.profit > 0 ? '#4ade80' : '#ff6b6b', fontWeight: 'bold'}}>
+                              {pick.result ? `${pick.result.profit > 0 ? '+' : ''}€${pick.result.profit.toFixed(2)}` : '-'}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            )}
+          </main>
+        </>
+      )}
+
+      <footer className="footer">
+        <p>© 2026 ATLAS Betting | v1.0</p>
+      </footer>
+    </div>
+  );
+}
+
+export default App;
