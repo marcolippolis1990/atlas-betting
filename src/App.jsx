@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import './App.css';
 
 function App() {
@@ -6,7 +6,6 @@ function App() {
   const [picksData, setPicksData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [selectedPick, setSelectedPick] = useState(null);
-  const [selectedDays, setSelectedDays] = useState(0);
 
   const API_URL = process.env.REACT_APP_API_URL || 'https://atlas-betting-production.up.railway.app';
 
