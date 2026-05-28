@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ProgettoTab from './ProgettoTab';
+import FantacalcioTab from './FantacalcioTab';
+import LoginModal from './LoginModal';
 import './App.css';
 
 function App() {
@@ -11,6 +13,20 @@ function App() {
   const [picksTab, setPicksTab] = useState('oggi');
   const [donationAmount, setDonationAmount] = useState(10);
   const [donationEmail, setDonationEmail] = useState('');
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
+
+  // Verifica login al caricamento
+  useEffect(() => {
+    const token = localStorage.getItem('atlas_token');
+    const user = localStorage.getItem('atlas_user');
+    if (token && user) {
+      setIsLoggedIn(true);
+      const userData = JSON.parse(user);
+      setUserEmail(userData.username || userData.email);
+    }
+  }, []);
 
   const API_URL = process.env.REACT_APP_API_URL || 'https://atlas-betting-production.up.railway.app';
 
@@ -120,10 +136,90 @@ function App() {
 
   return (
     <div className="app">
-      <header className="header" onClick={() => { setPicksData(null); setSelectedPick(null); setHomeTab('schedine'); }} style={{cursor: 'pointer'}}>
-        <h1>⚽ ATLAS Betting</h1>
-        <p>Sistema di analisi calcistica avanzato</p>
+      <header className="header" onClick={() => { setPicksData(null); setSelectedPick(null); setHomeTab('schedine'); }} style={{cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+        <div>
+          <h1>⚽ ATLAS Betting</h1>
+          <p>Sistema di analisi calcistica avanzato</p>
+        </div>
+        
+        <div style={{display: 'flex', gap: '10px', alignItems: 'center', marginRight: '20px'}}>
+          {isLoggedIn ? (
+            <>
+              <span style={{color: '#4ade80', fontWeight: 'bold'}}>{userEmail} ▼</span>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  localStorage.removeItem('atlas_token');
+                  localStorage.removeItem('atlas_user');
+                  setIsLoggedIn(false);
+                  setUserEmail('');
+                }}
+                style={{
+                  padding: '8px 16px',
+                  background: '#ff6b6b',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  fontSize: '13px'
+                }}
+              >
+                LOGOUT
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsLoginModalOpen(true);
+                }}
+                style={{
+                  padding: '8px 16px',
+                  background: '#00d4ff',
+                  color: '#000',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  fontSize: '13px'
+                }}
+              >
+                ACCEDI
+              </button>
+              <span style={{color: '#aaa'}}>|</span>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsLoginModalOpen(true);
+                }}
+                style={{
+                  padding: '8px 16px',
+                  background: '#4ade80',
+                  color: '#000',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  fontSize: '13px'
+                }}
+              >
+                REGISTRATI
+              </button>
+            </>
+          )}
+        </div>
       </header>
+
+      <LoginModal 
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        onLogin={(data) => {
+          setIsLoggedIn(true);
+          setUserEmail(data.username || data.email);
+        }}
+      />
 
       {/* HOME - No picks loaded */}
       {!picksData && (
@@ -377,10 +473,7 @@ function App() {
 
           {/* FANTACALCIO TAB */}
           {homeTab === 'fantacalcio' && (
-            <section className="section">
-              <h2 style={{color: '#00d4ff', marginBottom: '20px'}}>👥 Fantacalcio</h2>
-              <p style={{color: '#aaa'}}>⚽ Top giocatori e statistiche — sezione in sviluppo</p>
-            </section>
+            <FantacalcioTab />
           )}
 
           {/* IL PROGETTO TAB */}
