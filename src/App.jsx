@@ -14,6 +14,7 @@ function App() {
   const [donationAmount, setDonationAmount] = useState(10);
   const [donationEmail, setDonationEmail] = useState('');
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [loginMode, setLoginMode] = useState('login'); // 'login' o 'register'
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userEmail, setUserEmail] = useState('');
 
@@ -173,6 +174,7 @@ function App() {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
+                  setLoginMode('login');
                   setIsLoginModalOpen(true);
                 }}
                 style={{
@@ -192,6 +194,7 @@ function App() {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
+                  setLoginMode('register');
                   setIsLoginModalOpen(true);
                 }}
                 style={{
@@ -215,6 +218,7 @@ function App() {
       <LoginModal 
         isOpen={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}
+        initialMode={loginMode}
         onLogin={(data) => {
           setIsLoggedIn(true);
           setUserEmail(data.username || data.email);
