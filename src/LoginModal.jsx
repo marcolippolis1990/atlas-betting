@@ -1,13 +1,18 @@
 import React, { useState } from 'react';
 import './LoginModal.css';
 
-function LoginModal({ isOpen, onClose, onLogin }) {
-  const [mode, setMode] = useState('login'); // 'login' o 'register'
+function LoginModal({ isOpen, onClose, onLogin, initialMode = 'login' }) {
+  const [mode, setMode] = useState(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Sincronizza il mode quando cambia initialMode
+  React.useEffect(() => {
+    setMode(initialMode);
+  }, [initialMode]);
 
   const API_URL = process.env.REACT_APP_API_URL || 'https://atlas-betting-production.up.railway.app';
 
