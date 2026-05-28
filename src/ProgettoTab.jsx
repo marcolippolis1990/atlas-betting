@@ -586,7 +586,7 @@ const ProgettoTab = () => {
       {/* FOOTER CTA */}
       <div className="progetto-footer">
         <h3>🚀 Pronto per iniziare?</h3>
-        <p>Scopri i pick di oggi e le strategie ATLAS nella tab <a href="#schedine" className="footer-link"><strong>SCHEDINE</strong></a></p>
+        <p>Scopri i pick di oggi e le strategie ATLAS nella tab <strong>SCHEDINE</strong></p>
       </div>
     </div>
   );
