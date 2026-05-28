@@ -10,7 +10,7 @@ function App() {
   const API_URL = process.env.REACT_APP_API_URL || 'https://atlas-betting-production.up.railway.app';
 
   // Fetch picks data
-  const fetchPicks = async (days) => {
+  const fetchPicks = async () => {
     setLoading(true);
     try {
       const response = await fetch(`${API_URL}/api/picks-v5high`);
@@ -19,12 +19,13 @@ function App() {
       if (Array.isArray(data) && data.length > 0) {
         setPicksData(data);
         setActiveTab('schedina');
+        setSelectedPick(null);
       } else {
-        setPicksData(null);
+        alert('Nessun pick disponibile');
       }
     } catch (err) {
       console.error('Error fetching picks:', err);
-      setPicksData(null);
+      alert('Errore nel caricamento dei pick');
     }
     setLoading(false);
   };
@@ -32,10 +33,6 @@ function App() {
   // Analyze data
   const analyzePicksData = () => {
     if (!picksData || !Array.isArray(picksData)) return null;
-
-    const minDate = new Date(Math.min(...picksData.map(p => new Date(p.date).getTime())));
-    const maxDate = new Date(Math.max(...picksData.map(p => new Date(p.date).getTime())));
-    const daysSpan = Math.floor((maxDate - minDate) / (1000 * 60 * 60 * 24));
 
     const consigliatissimo = picksData.filter(p => p.in_schedina === true);
     const varianti = picksData.filter(p => p.in_schedina === false);
@@ -51,25 +48,9 @@ function App() {
       }
     });
 
-    // Check missing days
-    const datesInData = new Set(picksData.map(p => p.date));
-    const missingDays = [];
-    for (let i = 0; i <= daysSpan; i++) {
-      const checkDate = new Date(minDate);
-      checkDate.setDate(checkDate.getDate() + i);
-      const dateStr = checkDate.toISOString().split('T')[0];
-      if (!datesInData.has(dateStr)) {
-        missingDays.push(dateStr);
-      }
-    }
-
     return {
       consigliatissimo,
       varianti_grouped,
-      minDate,
-      maxDate,
-      daysSpan,
-      missingDays,
       allPicks: picksData
     };
   };
@@ -95,7 +76,7 @@ function App() {
   };
 
   // Get news links
-  const getNewsLinks = (team, league) => {
+  const getNewsLinks = (team) => {
     const encodedTeam = encodeURIComponent(team);
     return {
       gazzetta: `https://www.gazzetta.it/calcio/ricerca?q=${encodedTeam}`,
@@ -123,14 +104,15 @@ function App() {
         <p>Sistema di analisi calcistica avanzato</p>
       </header>
 
-      {activeTab === 'home' && (
+      {/* HOMEPAGE */}
+      {activeTab === 'home' && !picksData && (
         <main className="content">
           <section className="section">
             <h2 style={{color: '#00d4ff', marginBottom: '30px'}}>🎯 Scegli l'orizzonte temporale</h2>
             
             <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '40px'}}>
               <button
-                onClick={() => fetchPicks(0)}
+                onClick={fetchPicks}
                 style={{
                   padding: '30px 20px',
                   backgroundColor: '#1a2332',
@@ -147,7 +129,7 @@ function App() {
               </button>
 
               <button
-                onClick={() => fetchPicks(1)}
+                onClick={fetchPicks}
                 style={{
                   padding: '30px 20px',
                   backgroundColor: '#1a2332',
@@ -164,7 +146,7 @@ function App() {
               </button>
 
               <button
-                onClick={() => fetchPicks(2)}
+                onClick={fetchPicks}
                 style={{
                   padding: '30px 20px',
                   backgroundColor: '#1a2332',
@@ -181,7 +163,7 @@ function App() {
               </button>
 
               <button
-                onClick={() => fetchPicks(3)}
+                onClick={fetchPicks}
                 style={{
                   padding: '30px 20px',
                   backgroundColor: '#1a2332',
@@ -203,18 +185,21 @@ function App() {
         </main>
       )}
 
-      {picksData && activeTab !== 'home' && (
+      {/* TAB NAVIGATION */}
+      {picksData && (
         <>
           <nav className="nav-tabs">
             <button 
               className={`tab ${activeTab === 'schedina' ? 'active' : ''}`}
-              onClick={() => setActiveTab('schedina')}
+              onClick={() => { setActiveTab('schedina'); setSelectedPick(null); }}
             >
               🎯 Schedina
             </button>
             <button 
               className={`tab ${activeTab === 'dettagli' ? 'active' : ''}`}
               onClick={() => setActiveTab('dettagli')}
+              disabled={!selectedPick}
+              style={{opacity: selectedPick ? 1 : 0.5, cursor: selectedPick ? 'pointer' : 'not-allowed'}}
             >
               🔍 Dettagli
             </button>
@@ -231,8 +216,9 @@ function App() {
               📜 Storico
             </button>
             <button 
-              className={`tab ${activeTab === 'home' ? 'active' : ''}`}
-              onClick={() => { setActiveTab('home'); setSelectedPick(null); }}
+              className={`tab`}
+              onClick={() => { setActiveTab('home'); setPicksData(null); setSelectedPick(null); }}
+              style={{marginLeft: 'auto'}}
             >
               ← Indietro
             </button>
@@ -245,37 +231,35 @@ function App() {
                 <div style={{marginBottom: '30px', padding: '20px', backgroundColor: '#1a2332', borderRadius: '8px', border: '2px solid #00d4ff'}}>
                   <h2 style={{color: '#00d4ff', marginTop: 0}}>🎯 CONSIGLIATISSIMO</h2>
                   
-                  {analysis.missingDays.length > 0 && (
-                    <div style={{padding: '10px', backgroundColor: '#ff6b6b', color: '#fff', borderRadius: '4px', marginBottom: '15px', fontSize: '12px'}}>
-                      ⚠️ Nessuna schedina il {analysis.missingDays.map(d => formatDate(d)).join(', ')}
-                    </div>
-                  )}
-
                   <div style={{backgroundColor: '#2a3f4f', padding: '15px', borderRadius: '6px'}}>
-                    {analysis.consigliatissimo.map((pick, idx) => (
-                      <div
-                        key={idx}
-                        onClick={() => { setSelectedPick(pick); setActiveTab('dettagli'); }}
-                        style={{
-                          padding: '12px',
-                          marginBottom: '10px',
-                          backgroundColor: '#0a1420',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          borderLeft: '3px solid #4ade80',
-                          transition: 'all 0.2s'
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a2332'}
-                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#0a1420'}
-                      >
-                        <p style={{color: '#fff', fontWeight: 'bold', margin: '0 0 5px 0'}}>
-                          {pick.home} vs {pick.away} | {formatPickLabel(pick)} @ {pick.odds}
-                        </p>
-                        <p style={{color: '#aaa', fontSize: '12px', margin: 0}}>
-                          {pick.league} | {formatDate(pick.date)}
-                        </p>
-                      </div>
-                    ))}
+                    {analysis.consigliatissimo.length > 0 ? (
+                      analysis.consigliatissimo.map((pick, idx) => (
+                        <div
+                          key={idx}
+                          onClick={() => { setSelectedPick(pick); setActiveTab('dettagli'); }}
+                          style={{
+                            padding: '12px',
+                            marginBottom: '10px',
+                            backgroundColor: '#0a1420',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            borderLeft: '3px solid #4ade80',
+                            transition: 'all 0.2s'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a2332'}
+                          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#0a1420'}
+                        >
+                          <p style={{color: '#fff', fontWeight: 'bold', margin: '0 0 5px 0'}}>
+                            {pick.home} vs {pick.away} | {formatPickLabel(pick)} @ {pick.odds}
+                          </p>
+                          <p style={{color: '#aaa', fontSize: '12px', margin: 0}}>
+                            {pick.league} | {formatDate(pick.date)}
+                          </p>
+                        </div>
+                      ))
+                    ) : (
+                      <p style={{color: '#aaa'}}>Nessuna partita nel Consigliatissimo</p>
+                    )}
                   </div>
                 </div>
 
@@ -375,10 +359,6 @@ function App() {
                         <p style={{color: selectedPick.inj_a > 10 ? '#ff9800' : '#4ade80', fontWeight: 'bold', margin: 0}}>{selectedPick.inj_a}</p>
                       </div>
                       <div style={{backgroundColor: '#0a1420', padding: '10px', borderRadius: '4px'}}>
-                        <p style={{color: '#aaa', margin: '0 0 3px 0'}}>Edge Type</p>
-                        <p style={{color: '#00d4ff', fontWeight: 'bold', margin: 0, fontSize: '11px'}}>{selectedPick.edge_type}</p>
-                      </div>
-                      <div style={{backgroundColor: '#0a1420', padding: '10px', borderRadius: '4px'}}>
                         <p style={{color: '#aaa', margin: '0 0 3px 0'}}>European Week</p>
                         <p style={{color: selectedPick.european_week ? '#facc15' : '#aaa', fontWeight: 'bold', margin: 0}}>
                           {selectedPick.european_week ? '🌍 SÌ' : 'No'}
@@ -391,7 +371,7 @@ function App() {
                   <div style={{padding: '15px', backgroundColor: '#2a3f4f', borderRadius: '6px'}}>
                     <h4 style={{color: '#4ade80', marginTop: 0}}>📰 Notizie</h4>
                     <div style={{display: 'flex', gap: '10px', flexWrap: 'wrap'}}>
-                      {Object.entries(getNewsLinks(selectedPick.home, selectedPick.league)).map(([name, url]) => (
+                      {Object.entries(getNewsLinks(selectedPick.home)).map(([name, url]) => (
                         <a
                           key={name}
                           href={url}
@@ -442,7 +422,10 @@ function App() {
             {activeTab === 'stats' && (
               <section className="section">
                 <h2 style={{color: '#00d4ff'}}>📊 Statistiche</h2>
-                <p style={{color: '#aaa'}}>Analisi performance per lega, mercato e pattern — sezione in sviluppo</p>
+                <p style={{color: '#aaa'}}>📈 Performance per lega, mercato e pattern</p>
+                <div style={{padding: '20px', backgroundColor: '#1a2332', borderRadius: '8px'}}>
+                  <p style={{color: '#ccc'}}>Analisi in sviluppo — sezione disponibile con i dati completi</p>
+                </div>
               </section>
             )}
 
@@ -494,7 +477,7 @@ function App() {
       )}
 
       <footer className="footer">
-        <p>© 2026 ATLAS Betting | v1.0</p>
+        <p>© 2026 ATLAS Betting | v2.0</p>
       </footer>
     </div>
   );
