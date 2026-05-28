@@ -617,16 +617,15 @@ async def get_picks_today():
 
 @app.get("/api/picks-v5high")
 async def get_v5high_picks():
-    """Legge il file JSON dei pick da v5high"""
+    """Legge il file JSON dei pick da v5high da GitHub"""
     try:
-        picks_file = Path("backend/data/picks/picks_latest.json")
+        github_url = "https://raw.githubusercontent.com/marcolippolis1990/atlas-betting/main/backend/data/picks/picks_latest.json"
+        response = requests.get(github_url)
         
-        if not picks_file.exists():
+        if response.status_code == 200:
+            return response.json()
+        else:
             return []
-        
-        with open(picks_file, 'r') as f:
-            picks = json.load(f)
-        return picks
     except Exception as e:
         logger.error(f"Error reading picks: {e}")
         return []
