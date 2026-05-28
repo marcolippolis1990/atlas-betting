@@ -250,7 +250,108 @@ function App() {
           {homeTab === 'stats' && (
             <section className="section">
               <h2 style={{color: '#00d4ff', marginBottom: '20px'}}>📊 Statistiche</h2>
-              <p style={{color: '#aaa'}}>📈 Performance per lega, mercato e pattern — sezione in sviluppo</p>
+
+              {/* PERFORMANCE PER LEGA */}
+              <div style={{marginBottom: '30px', padding: '20px', backgroundColor: '#1a2332', borderRadius: '8px', border: '2px solid #4ade80'}}>
+                <h3 style={{color: '#4ade80', marginTop: 0}}>🏆 Performance per Lega</h3>
+                <div style={{overflowX: 'auto'}}>
+                  <table style={{width: '100%', borderCollapse: 'collapse', fontSize: '11px'}}>
+                    <thead>
+                      <tr style={{backgroundColor: '#0a1420', borderBottom: '2px solid #4ade80'}}>
+                        <th style={{padding: '10px', textAlign: 'left', color: '#4ade80'}}>Lega</th>
+                        <th style={{padding: '10px', textAlign: 'center', color: '#4ade80'}}>N</th>
+                        <th style={{padding: '10px', textAlign: 'center', color: '#4ade80'}}>WR</th>
+                        <th style={{padding: '10px', textAlign: 'center', color: '#4ade80'}}>ROI</th>
+                        <th style={{padding: '10px', textAlign: 'left', color: '#4ade80'}}>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        {lega: 'La Liga', n: 29, wr: '72.4%', roi: '+2.4%', status: 'P1 — Prima scelta'},
+                        {lega: 'Serie A', n: 33, wr: '75.8%', roi: '-0.8%', status: 'P2 — Seconda scelta'},
+                        {lega: 'Championship', n: 58, wr: '69.0%', roi: '-5.5%', status: 'P1 — Prima scelta'},
+                        {lega: 'Premier League', n: 24, wr: '66.7%', roi: '-2.7%', status: 'P2 — Seconda scelta'},
+                        {lega: 'Europa League', n: 10, wr: '80.0%', roi: '+6.8%', status: 'P2 — Solo OU35 EW'},
+                        {lega: 'Conference League', n: 18, wr: '66.7%', roi: '-3.3%', status: 'P3 — Solo OU35 knockout'},
+                        {lega: 'Champions League', n: 18, wr: '61.1%', roi: '+0.9%', status: 'SKIP — salvo eccezioni'},
+                      ].map((row, idx) => (
+                        <tr key={idx} style={{borderBottom: '1px solid #2a3f4f'}}>
+                          <td style={{padding: '10px', color: '#ccc'}}>{row.lega}</td>
+                          <td style={{padding: '10px', textAlign: 'center', color: '#aaa'}}>{row.n}</td>
+                          <td style={{padding: '10px', textAlign: 'center', color: row.wr.includes('+') ? '#4ade80' : '#ff9800'}}><strong>{row.wr}</strong></td>
+                          <td style={{padding: '10px', textAlign: 'center', color: row.roi.includes('+') ? '#4ade80' : '#ff6b6b'}}><strong>{row.roi}</strong></td>
+                          <td style={{padding: '10px', color: '#aaa', fontSize: '10px'}}>{row.status}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* PERFORMANCE PER MERCATO */}
+              <div style={{marginBottom: '30px', padding: '20px', backgroundColor: '#1a2332', borderRadius: '8px', border: '2px solid #4ade80'}}>
+                <h3 style={{color: '#4ade80', marginTop: 0}}>💹 Performance per Mercato</h3>
+                {[
+                  {mercato: 'OU35 U3.5', n: 122, wr: '72.1%', roi: '+1.1%', regola: 'Mercato principale'},
+                  {mercato: 'BTTS', n: 5, wr: '80.0%', roi: '+34.8%', regola: 'Solo consensus Atlas'},
+                  {mercato: 'DC', n: 23, wr: '60.9%', roi: '-4.0%', regola: 'Solo Atlas consensus 2/3 o 3/3'},
+                  {mercato: 'OU15 O1.5', n: 49, wr: '65.3%', roi: '-9.9%', regola: 'Solo La Liga prob >= 75%'},
+                  {mercato: 'G1T', n: 50, wr: '56.0%', roi: '-29.5%', regola: 'Quasi sempre SKIP'},
+                ].map((row, idx) => (
+                  <div key={idx} style={{padding: '12px', marginBottom: '10px', backgroundColor: '#2a3f4f', borderRadius: '6px', borderLeft: '3px solid ' + (row.roi.includes('+') ? '#4ade80' : '#ff6b6b')}}>
+                    <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '5px'}}>
+                      <h4 style={{color: '#fff', margin: 0}}>{row.mercato}</h4>
+                      <span style={{color: row.roi.includes('+') ? '#4ade80' : '#ff6b6b', fontWeight: 'bold'}}>{row.roi}</span>
+                    </div>
+                    <p style={{color: '#aaa', margin: '0 0 5px 0', fontSize: '11px'}}>N: {row.n} | WR: <strong style={{color: '#00d4ff'}}>{row.wr}</strong></p>
+                    <p style={{color: '#ccc', margin: 0, fontSize: '11px'}}>{row.regola}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* PATTERN OPERATIVI FORTI */}
+              <div style={{marginBottom: '30px', padding: '20px', backgroundColor: '#1a2332', borderRadius: '8px', border: '2px solid #4ade80'}}>
+                <h3 style={{color: '#4ade80', marginTop: 0}}>⚡ Pattern Operativi (Oro del Sistema)</h3>
+                {[
+                  {nome: '0-0 al 45\'', wr: '93.7%', partite: 63, desc: 'Se primo tempo senza gol, Under 3.5 vince quasi sempre'},
+                  {nome: 'xG < 2.7', wr: '86.3%', partite: 219, desc: 'Il segnale pre-partita più affidabile del sistema'},
+                  {nome: 'SOT <= 9 totali', wr: '83.7%', partite: 219, desc: 'Tiri in porta bassi = scoring potenziale basso'},
+                  {nome: 'Corners > 9', wr: '75.0%', partite: 'variabile', desc: 'Molti corner ma pochi gol = pressione senza concretizzazione'},
+                ].map((pattern, idx) => (
+                  <div key={idx} style={{padding: '12px', marginBottom: '10px', backgroundColor: '#2a3f4f', borderRadius: '6px', borderLeft: '4px solid #facc15'}}>
+                    <h5 style={{color: '#facc15', margin: '0 0 8px 0'}}>{pattern.nome}</h5>
+                    <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '5px', fontSize: '11px'}}>
+                      <span style={{color: '#4ade80'}}>WR: <strong>{pattern.wr}</strong></span>
+                      <span style={{color: '#aaa'}}>Backtest: {pattern.partite} partite</span>
+                    </div>
+                    <p style={{color: '#ccc', margin: 0, fontSize: '11px'}}>{pattern.desc}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* SINTESI ROI POSITIVO */}
+              <div style={{padding: '20px', backgroundColor: '#1a2332', borderRadius: '8px', border: '2px solid #4ade80'}}>
+                <h3 style={{color: '#4ade80', marginTop: 0}}>🎯 Migliori Combinazioni (ROI Positivo)</h3>
+                {[
+                  {contesto: '13+ infortuni + BTTS', wr: '100.0%', roi: '+62.7%', n: 4, ranking: '🥇'},
+                  {contesto: '5-8 infortuni + OU35', wr: '100.0%', roi: '+55.0%', n: 3, ranking: '🥇'},
+                  {contesto: 'Settimana normale + BTTS', wr: '85.7%', roi: '+41.9%', n: 7, ranking: '🥈'},
+                  {contesto: 'European week + OU35', wr: '84.6%', roi: '+16.5%', n: 13, ranking: '🥈'},
+                  {contesto: 'Championship + OU35', wr: '84.2%', roi: '+14.7%', n: 38, ranking: '🥈'},
+                ].map((combo, idx) => (
+                  <div key={idx} style={{padding: '12px', marginBottom: '10px', backgroundColor: '#2a3f4f', borderRadius: '6px'}}>
+                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px'}}>
+                      <h5 style={{color: '#fff', margin: 0, fontSize: '12px'}}>{combo.contesto}</h5>
+                      <span style={{color: '#4ade80', fontWeight: 'bold'}}>{combo.ranking}</span>
+                    </div>
+                    <div style={{display: 'flex', gap: '15px', fontSize: '11px'}}>
+                      <span style={{color: '#4ade80'}}>WR: <strong>{combo.wr}</strong></span>
+                      <span style={{color: '#4ade80'}}>ROI: <strong>{combo.roi}</strong></span>
+                      <span style={{color: '#aaa'}}>N: {combo.n} pick</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </section>
           )}
 
@@ -361,10 +462,8 @@ function App() {
                   </p>
                 </div>
 
-                {/* CONSIGLIATISSIMO */}
+                {/* PARTITE */}
                 <div style={{marginBottom: '30px', padding: '20px', backgroundColor: '#1a2332', borderRadius: '8px', border: '2px solid #00d4ff'}}>
-                  <h2 style={{color: '#00d4ff', marginTop: 0}}>🎯 CONSIGLIATISSIMO</h2>
-                  
                   {analysis.consigliatissimo.length > 0 ? (
                     analysis.consigliatissimo.map((pick, idx) => (
                       <div
