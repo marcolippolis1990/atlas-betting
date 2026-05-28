@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import ProgettoTab from './ProgettoTab';
 import './App.css';
 
 function App() {
@@ -146,6 +147,12 @@ function App() {
               onClick={() => setHomeTab('fantacalcio')}
             >
               👥 Fantacalcio
+            </button>
+            <button 
+              className={`tab ${homeTab === 'progetto' ? 'active' : ''}`}
+              onClick={() => setHomeTab('progetto')}
+            >
+              🎯 IL PROGETTO
             </button>
             <button 
               className={`tab ${homeTab === 'supporta' ? 'active' : ''}`}
@@ -361,6 +368,11 @@ function App() {
               <h2 style={{color: '#00d4ff', marginBottom: '20px'}}>👥 Fantacalcio</h2>
               <p style={{color: '#aaa'}}>⚽ Top giocatori e statistiche — sezione in sviluppo</p>
             </section>
+          )}
+
+          {/* IL PROGETTO TAB */}
+          {homeTab === 'progetto' && (
+            <ProgettoTab />
           )}
 
           {/* SUPPORTA TAB */}
