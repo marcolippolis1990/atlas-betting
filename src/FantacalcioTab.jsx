@@ -354,7 +354,7 @@ function FantacalcioTab() {
                         <div key={idx} className="formazione-card">
                           <p className="player-name">{player.name}</p>
                           <p className="player-team">{player.team}</p>
-                          <p className="player-role" style={{color: '#00d4ff', fontSize: '11px'}}>{getRoleLabel(player.pos)}</p>
+                          <p className="player-role" style={{color: '#fff', fontSize: '11px', fontWeight: 'bold'}}>{getRoleLabel(player.pos)}</p>
                           <p className="player-rating">Voto: {player.avg_rating}</p>
                           <p className="player-prob">Goal: {(player.prob_score * 100).toFixed(0)}%</p>
                         </div>
@@ -371,7 +371,7 @@ function FantacalcioTab() {
                           <div key={idx} className="formazione-card" style={{opacity: 0.7}}>
                             <p className="player-name">{player.name}</p>
                             <p className="player-team">{player.team}</p>
-                            <p className="player-role" style={{color: '#facc15', fontSize: '11px'}}>{getRoleLabel(player.pos)}</p>
+                            <p className="player-role" style={{color: '#fff', fontSize: '11px', fontWeight: 'bold'}}>{getRoleLabel(player.pos)}</p>
                             <p className="player-rating">Voto: {player.avg_rating}</p>
                             <p className="player-prob">Goal: {(player.prob_score * 100).toFixed(0)}%</p>
                           </div>
