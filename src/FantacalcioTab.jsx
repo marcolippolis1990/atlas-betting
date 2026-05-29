@@ -368,30 +368,27 @@ function FantacalcioTab() {
 
           <div className="stats-table">
             {/* INTESTAZIONE TABELLA */}
-            <div style={{
-              padding: '12px',
-              backgroundColor: '#0a1420',
-              borderBottom: '2px solid #00d4ff',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '10px',
-              borderRadius: '4px'
-            }}>
-              <div style={{flex: 1}}>
-                <p style={{color: '#00d4ff', fontWeight: 'bold', margin: 0, fontSize: '12px'}}>GIOCATORE</p>
+            <div className="stat-row" style={{backgroundColor: '#0a1420', borderBottom: '2px solid #00d4ff', marginBottom: '10px', fontWeight: 'bold'}}>
+              <div className="stat-info">
+                <p style={{color: '#00d4ff', margin: 0, fontSize: '12px', fontWeight: 'bold'}}>GIOCATORE</p>
               </div>
               
-              <div style={{display: 'flex', gap: '15px', width: '320px'}}>
-                <span style={{color: '#4ade80', fontWeight: 'bold', fontSize: '11px', textAlign: 'center'}}>Rating</span>
-                <span style={{color: '#00d4ff', fontWeight: 'bold', fontSize: '11px', textAlign: 'center'}}>Goal %</span>
-                <span style={{color: '#facc15', fontWeight: 'bold', fontSize: '11px', textAlign: 'center'}}>Assist %</span>
-                <span style={{color: '#aaa', fontWeight: 'bold', fontSize: '11px', textAlign: 'center'}}>Fair Sc.</span>
+              <div className="stat-numbers">
+                <span className="number">
+                  <span style={{color: '#4ade80', fontSize: '11px', fontWeight: 'bold'}}>Rating</span>
+                </span>
+                <span className="number">
+                  <span style={{color: '#00d4ff', fontSize: '11px', fontWeight: 'bold'}}>Goal %</span>
+                </span>
+                <span className="number">
+                  <span style={{color: '#facc15', fontSize: '11px', fontWeight: 'bold'}}>Assist %</span>
+                </span>
+                <span className="number">
+                  <span style={{color: '#aaa', fontSize: '11px', fontWeight: 'bold'}}>Fair Sc.</span>
+                </span>
               </div>
 
-              <div style={{width: '50px', textAlign: 'center'}}>
-                <p style={{color: '#aaa', fontWeight: 'bold', margin: 0, fontSize: '11px'}}>AZIONE</p>
-              </div>
+              <div style={{width: '40px'}}></div>
             </div>
 
             {/* RIGHE GIOCATORI */}
@@ -444,9 +441,26 @@ function FantacalcioTab() {
           
           {userRosa.length > 0 ? (
             <div>
-              <p style={{color: '#aaa', marginBottom: '20px'}}>
-                Hai {userRosa.length} giocatori salvati nella tua rosa
-              </p>
+              <div style={{padding: '15px', backgroundColor: '#2a3f4f', borderRadius: '8px', marginBottom: '20px', border: '1px solid #00d4ff', display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                <p style={{color: '#d0d0d0', margin: 0}}>
+                  Hai <strong style={{color: '#4ade80'}}>{userRosa.length}</strong> giocatori salvati nella tua rosa
+                </p>
+                <button
+                  onClick={() => setActiveTab('statistiche')}
+                  style={{
+                    padding: '8px 16px',
+                    backgroundColor: '#00d4ff',
+                    color: '#000',
+                    border: 'none',
+                    borderRadius: '4px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    fontSize: '12px'
+                  }}
+                >
+                  ➕ Aggiungi altri giocatori
+                </button>
+              </div>
               
               <div className="rosa-grid">
                 {userRosa.map((player, idx) => (
