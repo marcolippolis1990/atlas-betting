@@ -11,6 +11,16 @@ function FantacalcioTab() {
   const [allPlayers, setAllPlayers] = useState([]);
   const [topPlayers, setTopPlayers] = useState([]);
   const [allTeams, setAllTeams] = useState([]);
+  const [selectedFormation, setSelectedFormation] = useState('4-3-3');
+
+  // Formazioni disponibili
+  const formations = {
+    '4-3-3': { defenders: 4, midfielders: 3, forwards: 3, name: '4-3-3' },
+    '3-5-2': { defenders: 3, midfielders: 5, forwards: 2, name: '3-5-2' },
+    '4-2-4': { defenders: 4, midfielders: 2, forwards: 4, name: '4-2-4' },
+    '3-4-3': { defenders: 3, midfielders: 4, forwards: 3, name: '3-4-3' },
+    '5-3-2': { defenders: 5, midfielders: 3, forwards: 2, name: '5-3-2' }
+  };
 
   // Verifica login e carica rosa dal backend
   useEffect(() => {
@@ -50,7 +60,6 @@ function FantacalcioTab() {
         const response = await fetch('/player_props_2026-05-02.json');
         const data = await response.json();
         
-        // Estrai tutti i giocatori da tutte le partite e filtra solo Serie A
         const allPlayersArray = [];
         const teamsSet = new Set();
         
@@ -70,15 +79,12 @@ function FantacalcioTab() {
           }
         });
 
-        // Elimina duplicati (stesso giocatore potrebbe apparire in più partite)
         const uniquePlayers = Array.from(
           new Map(allPlayersArray.map(p => [p.id, p])).values()
         );
 
-        // Ordina per rating decrescente
         uniquePlayers.sort((a, b) => b.avg_rating - a.avg_rating);
 
-        // Converti set in array e ordina
         const teams = Array.from(teamsSet).sort();
 
         setAllPlayers(uniquePlayers);
@@ -86,7 +92,6 @@ function FantacalcioTab() {
         setAllTeams(teams);
       } catch (err) {
         console.error('Errore caricamento giocatori:', err);
-        // Fallback a dati mock se il caricamento fallisce
         const mockPlayers = [
           {
             id: 1,
@@ -117,6 +122,48 @@ function FantacalcioTab() {
     return matchSearch && matchRole && matchTeam;
   });
 
+  // Genera la migliore formazione per il modulo selezionato
+  const generateBestFormation = () => {
+    if (userRosa.length === 0) return { starting: [], bench: [] };
+
+    const formation = formations[selectedFormation];
+    
+    // Ordina giocatori per rating decrescente
+    const sorted = [...userRosa].sort((a, b) => b.avg_rating - a.avg_rating);
+    
+    // Separa per ruolo
+    const goalkeepers = sorted.filter(p => p.pos === 'G');
+    const defenders = sorted.filter(p => p.pos === 'D');
+    const midfielders = sorted.filter(p => p.pos === 'M' || p.pos === 'C');
+    const forwards = sorted.filter(p => p.pos === 'F' || p.pos === 'A');
+    
+    // Seleziona i migliori per ogni ruolo
+    const starting = [
+      ...goalkeepers.slice(0, 1),
+      ...defenders.slice(0, formation.defenders),
+      ...midfielders.slice(0, formation.midfielders),
+      ...forwards.slice(0, formation.forwards)
+    ];
+    
+    // Il resto va in panchina
+    const bench = sorted.filter(p => !starting.find(s => s.id === p.id));
+    
+    return { starting, bench };
+  };
+
+  const { starting, bench } = generateBestFormation();
+
+  // Calcola statistiche della formazione
+  const formationStats = () => {
+    const ratingAvg = starting.length > 0 ? (starting.reduce((sum, p) => sum + p.avg_rating, 0) / starting.length).toFixed(2) : 0;
+    const totalGoals = starting.reduce((sum, p) => sum + (p.prob_score || 0), 0).toFixed(2);
+    const totalAssists = starting.reduce((sum, p) => sum + (p.prob_assist || 0), 0).toFixed(2);
+    
+    return { ratingAvg, totalGoals, totalAssists };
+  };
+
+  const stats = formationStats();
+
   // Aggiungi giocatore alla rosa
   const addToRosa = async (player) => {
     if (!isLoggedIn) {
@@ -132,7 +179,6 @@ function FantacalcioTab() {
     const newRosa = [...userRosa, player];
     setUserRosa(newRosa);
     
-    // Salva nel backend
     const token = localStorage.getItem('atlas_token');
     try {
       const API_URL = process.env.REACT_APP_API_URL || 'https://atlas-betting-production.up.railway.app';
@@ -170,7 +216,6 @@ function FantacalcioTab() {
     const newRosa = userRosa.filter(p => p.id !== playerId);
     setUserRosa(newRosa);
     
-    // Salva nel backend
     const token = localStorage.getItem('atlas_token');
     try {
       const API_URL = process.env.REACT_APP_API_URL || 'https://atlas-betting-production.up.railway.app';
@@ -253,16 +298,81 @@ function FantacalcioTab() {
               </div>
 
               {userRosa.length > 0 ? (
-                <div className="formazione-grid">
-                  <h3 style={{color: '#4ade80', gridColumn: '1/-1'}}>I tuoi migliori 11</h3>
-                  {userRosa.slice(0, 11).map((player, idx) => (
-                    <div key={idx} className="formazione-card">
-                      <p className="player-name">{player.name}</p>
-                      <p className="player-team">{player.team}</p>
-                      <p className="player-rating">Voto: {player.avg_rating}</p>
-                      <p className="player-prob">Goal: {(player.prob_score * 100).toFixed(0)}%</p>
+                <div>
+                  {/* SELEZIONE MODULO */}
+                  <div style={{marginBottom: '20px', padding: '15px', backgroundColor: '#2a3f4f', borderRadius: '8px'}}>
+                    <p style={{color: '#aaa', margin: '0 0 10px 0', fontSize: '12px'}}>Scegli il modulo:</p>
+                    <div style={{display: 'flex', gap: '10px', flexWrap: 'wrap'}}>
+                      {Object.keys(formations).map((formation) => (
+                        <button
+                          key={formation}
+                          onClick={() => setSelectedFormation(formation)}
+                          style={{
+                            padding: '10px 16px',
+                            backgroundColor: selectedFormation === formation ? '#4ade80' : '#0a1420',
+                            color: selectedFormation === formation ? '#000' : '#4ade80',
+                            border: `2px solid ${selectedFormation === formation ? '#4ade80' : '#4ade80'}`,
+                            borderRadius: '6px',
+                            fontWeight: 'bold',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
+                          }}
+                        >
+                          {formation}
+                        </button>
+                      ))}
                     </div>
-                  ))}
+                  </div>
+
+                  {/* STATISTICHE FORMAZIONE */}
+                  <div style={{marginBottom: '20px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px'}}>
+                    <div style={{padding: '15px', backgroundColor: '#2a3f4f', borderRadius: '8px', textAlign: 'center', borderLeft: '3px solid #4ade80'}}>
+                      <p style={{color: '#aaa', fontSize: '12px', margin: '0 0 5px 0'}}>Rating Medio</p>
+                      <p style={{color: '#4ade80', fontWeight: 'bold', fontSize: '18px', margin: 0}}>{stats.ratingAvg}</p>
+                    </div>
+                    <div style={{padding: '15px', backgroundColor: '#2a3f4f', borderRadius: '8px', textAlign: 'center', borderLeft: '3px solid #00d4ff'}}>
+                      <p style={{color: '#aaa', fontSize: '12px', margin: '0 0 5px 0'}}>Gol Previsti</p>
+                      <p style={{color: '#00d4ff', fontWeight: 'bold', fontSize: '18px', margin: 0}}>{stats.totalGoals}</p>
+                    </div>
+                    <div style={{padding: '15px', backgroundColor: '#2a3f4f', borderRadius: '8px', textAlign: 'center', borderLeft: '3px solid #facc15'}}>
+                      <p style={{color: '#aaa', fontSize: '12px', margin: '0 0 5px 0'}}>Assist Previsti</p>
+                      <p style={{color: '#facc15', fontWeight: 'bold', fontSize: '18px', margin: 0}}>{stats.totalAssists}</p>
+                    </div>
+                  </div>
+
+                  {/* TITOLARI */}
+                  <div style={{marginBottom: '20px', padding: '20px', backgroundColor: '#1a2332', borderRadius: '8px', border: '2px solid #4ade80'}}>
+                    <h3 style={{color: '#4ade80', marginTop: 0, marginBottom: '15px'}}>⚽ Titolari ({starting.length})</h3>
+                    <div className="formazione-grid">
+                      {starting.map((player, idx) => (
+                        <div key={idx} className="formazione-card">
+                          <p className="player-name">{player.name}</p>
+                          <p className="player-team">{player.team}</p>
+                          <p className="player-role" style={{color: '#00d4ff', fontSize: '11px'}}>{getRoleLabel(player.pos)}</p>
+                          <p className="player-rating">Voto: {player.avg_rating}</p>
+                          <p className="player-prob">Goal: {(player.prob_score * 100).toFixed(0)}%</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* PANCHINA */}
+                  {bench.length > 0 && (
+                    <div style={{padding: '20px', backgroundColor: '#1a2332', borderRadius: '8px', border: '2px solid #facc15'}}>
+                      <h3 style={{color: '#facc15', marginTop: 0, marginBottom: '15px'}}>🪑 Panchina ({bench.length})</h3>
+                      <div className="formazione-grid">
+                        {bench.map((player, idx) => (
+                          <div key={idx} className="formazione-card" style={{opacity: 0.7}}>
+                            <p className="player-name">{player.name}</p>
+                            <p className="player-team">{player.team}</p>
+                            <p className="player-role" style={{color: '#facc15', fontSize: '11px'}}>{getRoleLabel(player.pos)}</p>
+                            <p className="player-rating">Voto: {player.avg_rating}</p>
+                            <p className="player-prob">Goal: {(player.prob_score * 100).toFixed(0)}%</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div style={{padding: '20px', backgroundColor: '#1a2332', borderRadius: '8px', border: '2px solid #facc15', marginTop: '20px'}}>
