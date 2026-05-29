@@ -7,8 +7,10 @@ function FantacalcioTab() {
   const [userRosa, setUserRosa] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState('all');
+  const [selectedTeam, setSelectedTeam] = useState('all');
   const [allPlayers, setAllPlayers] = useState([]);
   const [topPlayers, setTopPlayers] = useState([]);
+  const [allTeams, setAllTeams] = useState([]);
 
   // Verifica login e carica rosa dal backend
   useEffect(() => {
@@ -50,8 +52,13 @@ function FantacalcioTab() {
         
         // Estrai tutti i giocatori da tutte le partite e filtra solo Serie A
         const allPlayersArray = [];
+        const teamsSet = new Set();
+        
         data.matches.forEach(match => {
           if (match.league === 'Serie A') {
+            teamsSet.add(match.home);
+            teamsSet.add(match.away);
+            
             match.players.forEach(player => {
               allPlayersArray.push({
                 ...player,
@@ -71,8 +78,12 @@ function FantacalcioTab() {
         // Ordina per rating decrescente
         uniquePlayers.sort((a, b) => b.avg_rating - a.avg_rating);
 
+        // Converti set in array e ordina
+        const teams = Array.from(teamsSet).sort();
+
         setAllPlayers(uniquePlayers);
         setTopPlayers(uniquePlayers.slice(0, 10));
+        setAllTeams(teams);
       } catch (err) {
         console.error('Errore caricamento giocatori:', err);
         // Fallback a dati mock se il caricamento fallisce
@@ -91,6 +102,7 @@ function FantacalcioTab() {
         ];
         setAllPlayers(mockPlayers);
         setTopPlayers(mockPlayers);
+        setAllTeams(['AC Milan']);
       }
     };
 
@@ -101,7 +113,8 @@ function FantacalcioTab() {
   const filteredPlayers = allPlayers.filter(p => {
     const matchSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchRole = selectedRole === 'all' || p.pos === selectedRole;
-    return matchSearch && matchRole;
+    const matchTeam = selectedTeam === 'all' || p.team === selectedTeam;
+    return matchSearch && matchRole && matchTeam;
   });
 
   // Aggiungi giocatore alla rosa
@@ -314,6 +327,12 @@ function FantacalcioTab() {
         <div className="fantacalcio-content">
           <h2 style={{color: '#00d4ff'}}>📊 Statistiche Giocatori</h2>
           
+          <div style={{padding: '15px', backgroundColor: '#2a3f4f', borderRadius: '8px', marginBottom: '20px', border: '1px solid #00d4ff'}}>
+            <p style={{color: '#d0d0d0', margin: 0}}>
+              📌 Sfoglia i giocatori disponibili, filtra per ruolo o squadra, e <strong>clicca il ➕ per aggiungerli alla tua rosa!</strong>
+            </p>
+          </div>
+          
           <div className="filters">
             <input
               type="text"
@@ -332,9 +351,18 @@ function FantacalcioTab() {
               <option value="G">Portieri</option>
               <option value="D">Difensori</option>
               <option value="M">Centrocampisti</option>
-              <option value="C">Centrocampisti</option>
               <option value="F">Attaccanti</option>
-              <option value="A">Attaccanti</option>
+            </select>
+
+            <select 
+              value={selectedTeam}
+              onChange={(e) => setSelectedTeam(e.target.value)}
+              className="role-filter"
+            >
+              <option value="all">Tutte le squadre</option>
+              {allTeams.map((team, idx) => (
+                <option key={idx} value={team}>{team}</option>
+              ))}
             </select>
           </div>
 
@@ -418,7 +446,8 @@ function FantacalcioTab() {
             </div>
           ) : (
             <div style={{padding: '30px', textAlign: 'center', backgroundColor: '#1a2332', borderRadius: '8px', border: '2px solid #facc15'}}>
-              <p style={{color: '#facc15'}}>📌 La tua rosa è vuota. Aggiungi giocatori dalle altre schede!</p>
+              <p style={{color: '#facc15', marginBottom: '15px'}}>👉 Aggiungi giocatori da "Statistiche Giocatori"</p>
+              <p style={{color: '#aaa', fontSize: '13px', margin: 0}}>Sfoglia i giocatori, filtra per ruolo o squadra, e clicca ➕ per aggiungerli</p>
             </div>
           )}
         </div>
