@@ -214,6 +214,13 @@ async def create_tables_if_not_exist():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
 
+        -- Aggiungi colonne mancanti se non esistono
+        ALTER TABLE users
+        ADD COLUMN IF NOT EXISTS password VARCHAR(255) NOT NULL DEFAULT '';
+
+        ALTER TABLE users
+        ADD COLUMN IF NOT EXISTS username VARCHAR(100);
+
         CREATE TABLE IF NOT EXISTS user_rosa (
             id SERIAL PRIMARY KEY,
             user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
