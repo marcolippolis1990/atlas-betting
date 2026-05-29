@@ -79,8 +79,8 @@ function LoginModal({ isOpen, onClose, onLogin, initialMode = 'login' }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: forgotEmail || null,
-          username: forgotUsername || null
+          email: forgotEmail || "",
+          username: forgotUsername || ""
         })
       });
 
