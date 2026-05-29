@@ -10,18 +10,36 @@ function FantacalcioTab() {
   const [allPlayers, setAllPlayers] = useState([]);
   const [topPlayers, setTopPlayers] = useState([]);
 
-  // Verifica login
+  // Verifica login e carica rosa dal backend
   useEffect(() => {
     const token = localStorage.getItem('atlas_token');
     setIsLoggedIn(!!token);
     
     if (token) {
-      const saved = localStorage.getItem('atlas_user_rosa');
-      if (saved) {
-        setUserRosa(JSON.parse(saved));
-      }
+      loadRosaFromBackend(token);
     }
   }, []);
+
+  // Carica rosa dal backend
+  const loadRosaFromBackend = async (token) => {
+    try {
+      const API_URL = process.env.REACT_APP_API_URL || 'https://atlas-betting-production.up.railway.app';
+      const response = await fetch(`${API_URL}/api/user/rosa`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.data && Array.isArray(data.data)) {
+          setUserRosa(data.data);
+        }
+      }
+    } catch (err) {
+      console.error('Errore caricamento rosa:', err);
+    }
+  };
 
   // Carica giocatori dal JSON
   useEffect(() => {
@@ -87,19 +105,89 @@ function FantacalcioTab() {
   });
 
   // Aggiungi giocatore alla rosa
-  const addToRosa = (player) => {
-    if (!userRosa.find(p => p.id === player.id)) {
-      const newRosa = [...userRosa, player];
-      setUserRosa(newRosa);
-      localStorage.setItem('atlas_user_rosa', JSON.stringify(newRosa));
+  const addToRosa = async (player) => {
+    if (!isLoggedIn) {
+      alert('Devi essere loggato per aggiungere giocatori!');
+      return;
+    }
+
+    if (userRosa.find(p => p.id === player.id)) {
+      alert('Giocatore già in rosa');
+      return;
+    }
+
+    const newRosa = [...userRosa, player];
+    setUserRosa(newRosa);
+    
+    // Salva nel backend
+    const token = localStorage.getItem('atlas_token');
+    try {
+      const API_URL = process.env.REACT_APP_API_URL || 'https://atlas-betting-production.up.railway.app';
+      const response = await fetch(`${API_URL}/api/user/rosa`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          players: newRosa.map(p => ({
+            id: p.id,
+            name: p.name,
+            team: p.team,
+            pos: p.pos,
+            avg_rating: p.avg_rating,
+            prob_score: p.prob_score,
+            prob_assist: p.prob_assist
+          }))
+        })
+      });
+
+      if (!response.ok) {
+        console.error('Errore salvataggio rosa');
+        setUserRosa(userRosa);
+      }
+    } catch (err) {
+      console.error('Errore:', err);
+      setUserRosa(userRosa);
     }
   };
 
   // Rimuovi giocatore dalla rosa
-  const removeFromRosa = (playerId) => {
+  const removeFromRosa = async (playerId) => {
     const newRosa = userRosa.filter(p => p.id !== playerId);
     setUserRosa(newRosa);
-    localStorage.setItem('atlas_user_rosa', JSON.stringify(newRosa));
+    
+    // Salva nel backend
+    const token = localStorage.getItem('atlas_token');
+    try {
+      const API_URL = process.env.REACT_APP_API_URL || 'https://atlas-betting-production.up.railway.app';
+      const response = await fetch(`${API_URL}/api/user/rosa`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          players: newRosa.map(p => ({
+            id: p.id,
+            name: p.name,
+            team: p.team,
+            pos: p.pos,
+            avg_rating: p.avg_rating,
+            prob_score: p.prob_score,
+            prob_assist: p.prob_assist
+          }))
+        })
+      });
+
+      if (!response.ok) {
+        console.error('Errore salvataggio rosa');
+        setUserRosa([...newRosa, userRosa.find(p => p.id === playerId)]);
+      }
+    } catch (err) {
+      console.error('Errore:', err);
+      setUserRosa([...newRosa, userRosa.find(p => p.id === playerId)]);
+    }
   };
 
   const getRoleLabel = (pos) => {
