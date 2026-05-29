@@ -10,6 +10,7 @@ from pathlib import Path
 import logging
 import json
 import requests
+import uuid
 from passlib.context import CryptContext
 from jwt import encode, decode, ExpiredSignatureError, InvalidTokenError
 
@@ -122,12 +123,21 @@ class MatchData(BaseModel):
 
 class RegisterRequest(BaseModel):
     email: str
+    username: str
     password: str
     password_confirm: str
 
 class LoginRequest(BaseModel):
     email: str
     password: str
+
+class ResetPasswordRequest(BaseModel):
+    email: str = None
+    username: str = None
+
+class ResetPasswordConfirm(BaseModel):
+    token: str
+    new_password: str
 
 class LoginResponse(BaseModel):
     access_token: str
@@ -232,6 +242,14 @@ async def create_tables_if_not_exist():
             prob_score NUMERIC(5,3),
             prob_assist NUMERIC(5,3),
             added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE TABLE IF NOT EXISTS password_reset_tokens (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+            token VARCHAR(255) UNIQUE NOT NULL,
+            expires_at TIMESTAMP NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
 
         CREATE TABLE IF NOT EXISTS feedback (
@@ -432,13 +450,19 @@ async def register(req: RegisterRequest):
             conn.close()
             raise HTTPException(status_code=400, detail="Email già registrata")
         
+        # Controlla se lo username esiste già
+        cursor.execute("SELECT id FROM users WHERE username = %s", (req.username,))
+        if cursor.fetchone():
+            cursor.close()
+            conn.close()
+            raise HTTPException(status_code=400, detail="Username già in uso")
+        
         # Hash password e crea utente
         hashed_password = hash_password(req.password)
-        username = req.email.split('@')[0]
         
         cursor.execute(
             "INSERT INTO users (email, password, username) VALUES (%s, %s, %s) RETURNING id",
-            (req.email, hashed_password, username)
+            (req.email, hashed_password, req.username)
         )
         user_id = cursor.fetchone()[0]
         conn.commit()
@@ -452,7 +476,7 @@ async def register(req: RegisterRequest):
             access_token=access_token,
             token_type="bearer",
             email=req.email,
-            username=username
+            username=req.username
         )
     except HTTPException:
         raise
@@ -490,6 +514,112 @@ async def login(req: LoginRequest):
         raise
     except Exception as e:
         logger.error(f"Login error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/auth/request-reset")
+async def request_reset(req: ResetPasswordRequest):
+    """Richiede un reset password via email o username"""
+    try:
+        if not req.email and not req.username:
+            raise HTTPException(status_code=400, detail="Fornisci email o username")
+        
+        conn = get_db_connection()
+        if not conn:
+            raise HTTPException(status_code=500, detail="Database unavailable")
+        
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        
+        # Cerca l'utente per email o username
+        if req.email:
+            cursor.execute("SELECT id, email FROM users WHERE email = %s", (req.email,))
+        else:
+            cursor.execute("SELECT id, email FROM users WHERE username = %s", (req.username,))
+        
+        user = cursor.fetchone()
+        
+        if not user:
+            cursor.close()
+            conn.close()
+            # Non dire che l'utente non esiste per motivi di sicurezza
+            return {"status": "success", "message": "Se l'utente esiste, riceverà un link di reset"}
+        
+        # Genera un token unico
+        reset_token = str(uuid.uuid4())
+        expires_at = datetime.utcnow() + timedelta(hours=1)  # Token valido per 1 ora
+        
+        # Salva il token nel database
+        cursor.execute(
+            "INSERT INTO password_reset_tokens (user_id, token, expires_at) VALUES (%s, %s, %s)",
+            (user['id'], reset_token, expires_at)
+        )
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        # Costruisci il link (il frontend dovrà avere una pagina /reset-password?token=...)
+        reset_link = f"https://atlas-betting.vercel.app/reset-password?token={reset_token}"
+        
+        return {
+            "status": "success",
+            "reset_link": reset_link,
+            "message": "Copia il link per resettare la password"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Request reset error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/auth/reset-password")
+async def reset_password(req: ResetPasswordConfirm):
+    """Completa il reset password con il token e la nuova password"""
+    try:
+        if len(req.new_password) < 6:
+            raise HTTPException(status_code=400, detail="La password deve essere almeno 6 caratteri")
+        
+        conn = get_db_connection()
+        if not conn:
+            raise HTTPException(status_code=500, detail="Database unavailable")
+        
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        
+        # Verifica il token
+        cursor.execute(
+            "SELECT user_id, expires_at FROM password_reset_tokens WHERE token = %s",
+            (req.token,)
+        )
+        token_data = cursor.fetchone()
+        
+        if not token_data:
+            cursor.close()
+            conn.close()
+            raise HTTPException(status_code=400, detail="Token non valido")
+        
+        # Controlla se il token è scaduto
+        if datetime.fromisoformat(token_data['expires_at'].isoformat()) < datetime.utcnow():
+            cursor.close()
+            conn.close()
+            raise HTTPException(status_code=400, detail="Token scaduto")
+        
+        # Aggiorna la password
+        hashed_password = hash_password(req.new_password)
+        cursor.execute(
+            "UPDATE users SET password = %s WHERE id = %s",
+            (hashed_password, token_data['user_id'])
+        )
+        
+        # Cancella il token (one-time use)
+        cursor.execute("DELETE FROM password_reset_tokens WHERE token = %s", (req.token,))
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        return {"status": "success", "message": "Password resettata con successo"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Reset password error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # ============================================================================
