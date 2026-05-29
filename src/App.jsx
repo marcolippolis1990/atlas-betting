@@ -477,7 +477,7 @@ function App() {
 
           {/* FANTACALCIO TAB */}
           {homeTab === 'fantacalcio' && (
-            <FantacalcioTab />
+            <FantacalcioTab isLoggedIn={isLoggedIn} userEmail={userEmail} />
           )}
 
           {/* IL PROGETTO TAB */}
