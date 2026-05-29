@@ -164,21 +164,27 @@ function FantacalcioTab() {
 
   const stats = formationStats();
 
-  // Aggiungi giocatore alla rosa
-  const addToRosa = async (player) => {
+  // Toggle: aggiungi/rimuovi giocatore dalla rosa
+  const togglePlayerInRosa = async (player) => {
     if (!isLoggedIn) {
       alert('Devi essere loggato per aggiungere giocatori!');
       return;
     }
 
-    if (userRosa.find(p => p.id === player.id)) {
-      alert('Giocatore già in rosa');
-      return;
+    const isInRosa = userRosa.find(p => p.id === player.id);
+
+    let newRosa;
+    if (isInRosa) {
+      // Rimuovi dalla rosa
+      newRosa = userRosa.filter(p => p.id !== player.id);
+    } else {
+      // Aggiungi alla rosa
+      newRosa = [...userRosa, player];
     }
 
-    const newRosa = [...userRosa, player];
     setUserRosa(newRosa);
     
+    // Salva nel backend
     const token = localStorage.getItem('atlas_token');
     try {
       const API_URL = process.env.REACT_APP_API_URL || 'https://atlas-betting-production.up.railway.app';
@@ -421,9 +427,15 @@ function FantacalcioTab() {
                 {isLoggedIn && (
                   <button 
                     className="btn-add"
-                    onClick={() => addToRosa(player)}
+                    onClick={() => togglePlayerInRosa(player)}
+                    style={{
+                      backgroundColor: userRosa.find(p => p.id === player.id) ? '#4ade80' : '#00d4ff',
+                      color: userRosa.find(p => p.id === player.id) ? '#000' : '#000',
+                      transition: 'all 0.2s',
+                      boxShadow: userRosa.find(p => p.id === player.id) ? '0 0 10px rgba(74, 222, 128, 0.3)' : 'none'
+                    }}
                   >
-                    ➕ Aggiungi alla rosa
+                    {userRosa.find(p => p.id === player.id) ? '✓ In rosa' : '➕ Aggiungi alla rosa'}
                   </button>
                 )}
               </div>
@@ -530,9 +542,21 @@ function FantacalcioTab() {
                   {isLoggedIn && (
                     <button 
                       className="btn-small"
-                      onClick={() => addToRosa(player)}
+                      onClick={() => togglePlayerInRosa(player)}
+                      style={{
+                        padding: '6px 12px',
+                        backgroundColor: userRosa.find(p => p.id === player.id) ? '#4ade80' : '#fff',
+                        color: userRosa.find(p => p.id === player.id) ? '#000' : '#000',
+                        border: 'none',
+                        borderRadius: '4px',
+                        fontWeight: 'bold',
+                        cursor: 'pointer',
+                        fontSize: '12px',
+                        transition: 'all 0.2s',
+                        boxShadow: userRosa.find(p => p.id === player.id) ? '0 0 10px rgba(74, 222, 128, 0.3)' : 'none'
+                      }}
                     >
-                      ➕
+                      {userRosa.find(p => p.id === player.id) ? '✓' : '➕'}
                     </button>
                   )}
                 </div>
