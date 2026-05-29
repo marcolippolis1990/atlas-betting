@@ -1,19 +1,17 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import os
 import psycopg2
 from psycopg2.extras import RealDictCursor, execute_batch
 from dotenv import load_dotenv
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
-from datetime import datetime
 import logging
 import json
 import requests
 from passlib.context import CryptContext
 from jwt import encode, decode, ExpiredSignatureError, InvalidTokenError
-from datetime import timedelta
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -21,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
+
 # JWT Configuration
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-secret-key-change-in-production")
 ALGORITHM = "HS256"
@@ -44,6 +43,7 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
     to_encode.update({"exp": expire})
     encoded_jwt = encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 if not DATABASE_URL:
@@ -116,6 +116,33 @@ class MatchData(BaseModel):
     market: str = None
     pick: str = None
 
+class RegisterRequest(BaseModel):
+    email: str
+    password: str
+    password_confirm: str
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+class LoginResponse(BaseModel):
+    access_token: str
+    token_type: str
+    email: str
+    username: str
+
+class RosaPlayer(BaseModel):
+    id: int
+    name: str
+    team: str
+    pos: str
+    avg_rating: float
+    prob_score: float
+    prob_assist: float
+
+class RosaRequest(BaseModel):
+    players: list[RosaPlayer]
+
 # ============================================================================
 # CREA TABELLE
 # ============================================================================
@@ -177,8 +204,23 @@ async def create_tables_if_not_exist():
 
         CREATE TABLE IF NOT EXISTS users (
             id SERIAL PRIMARY KEY,
-            email VARCHAR(255) UNIQUE,
+            email VARCHAR(255) UNIQUE NOT NULL,
+            password VARCHAR(255) NOT NULL,
+            username VARCHAR(100),
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE TABLE IF NOT EXISTS user_rosa (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+            player_id INTEGER NOT NULL,
+            player_name VARCHAR(150) NOT NULL,
+            player_team VARCHAR(100) NOT NULL,
+            player_pos VARCHAR(5) NOT NULL,
+            avg_rating NUMERIC(4,2),
+            prob_score NUMERIC(5,3),
+            prob_assist NUMERIC(5,3),
+            added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
 
         CREATE TABLE IF NOT EXISTS feedback (
@@ -351,6 +393,193 @@ async def health_check():
     except Exception as e:
         logger.error(f"Health check failed: {e}")
         return {"status": "unhealthy", "error": str(e)}, 500
+
+# ============================================================================
+# API - AUTENTICAZIONE
+# ============================================================================
+
+@app.post("/api/auth/register")
+async def register(req: RegisterRequest):
+    """Registra un nuovo utente"""
+    try:
+        if req.password != req.password_confirm:
+            raise HTTPException(status_code=400, detail="Le password non corrispondono")
+        
+        if len(req.password) < 6:
+            raise HTTPException(status_code=400, detail="La password deve essere almeno 6 caratteri")
+        
+        conn = get_db_connection()
+        if not conn:
+            raise HTTPException(status_code=500, detail="Database unavailable")
+        
+        cursor = conn.cursor()
+        
+        # Controlla se l'email esiste già
+        cursor.execute("SELECT id FROM users WHERE email = %s", (req.email,))
+        if cursor.fetchone():
+            cursor.close()
+            conn.close()
+            raise HTTPException(status_code=400, detail="Email già registrata")
+        
+        # Hash password e crea utente
+        hashed_password = hash_password(req.password)
+        username = req.email.split('@')[0]
+        
+        cursor.execute(
+            "INSERT INTO users (email, password, username) VALUES (%s, %s, %s) RETURNING id",
+            (req.email, hashed_password, username)
+        )
+        user_id = cursor.fetchone()[0]
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        # Crea token
+        access_token = create_access_token(data={"sub": req.email, "user_id": user_id})
+        
+        return LoginResponse(
+            access_token=access_token,
+            token_type="bearer",
+            email=req.email,
+            username=username
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Register error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/auth/login")
+async def login(req: LoginRequest):
+    """Login utente"""
+    try:
+        conn = get_db_connection()
+        if not conn:
+            raise HTTPException(status_code=500, detail="Database unavailable")
+        
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        cursor.execute("SELECT id, email, password, username FROM users WHERE email = %s", (req.email,))
+        user = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        
+        if not user or not verify_password(req.password, user['password']):
+            raise HTTPException(status_code=401, detail="Email o password scorretti")
+        
+        # Crea token
+        access_token = create_access_token(data={"sub": req.email, "user_id": user['id']})
+        
+        return LoginResponse(
+            access_token=access_token,
+            token_type="bearer",
+            email=user['email'],
+            username=user['username']
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Login error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ============================================================================
+# API - ROSA GIOCATORI
+# ============================================================================
+
+def get_current_user(authorization: str = None):
+    """Estrae user_id dal token JWT"""
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Token mancante")
+    
+    try:
+        token = authorization.replace("Bearer ", "")
+        payload = decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("user_id")
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Token invalido")
+        return user_id
+    except ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token scaduto")
+    except InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Token invalido")
+
+@app.post("/api/user/rosa")
+async def save_rosa(req: RosaRequest, authorization: str = None):
+    """Salva la rosa giocatori dell'utente"""
+    try:
+        user_id = get_current_user(authorization)
+        
+        conn = get_db_connection()
+        if not conn:
+            raise HTTPException(status_code=500, detail="Database unavailable")
+        
+        cursor = conn.cursor()
+        
+        # Cancella la rosa vecchia
+        cursor.execute("DELETE FROM user_rosa WHERE user_id = %s", (user_id,))
+        
+        # Inserisci la nuova rosa
+        rosa_data = []
+        for player in req.players:
+            rosa_data.append((
+                user_id,
+                player.id,
+                player.name,
+                player.team,
+                player.pos,
+                player.avg_rating,
+                player.prob_score,
+                player.prob_assist
+            ))
+        
+        if rosa_data:
+            execute_batch(cursor, """
+                INSERT INTO user_rosa (user_id, player_id, player_name, player_team, player_pos, avg_rating, prob_score, prob_assist)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            """, rosa_data, page_size=50)
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        return {"status": "success", "message": "Rosa salvata", "players_saved": len(req.players)}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Save rosa error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/user/rosa")
+async def get_rosa(authorization: str = None):
+    """Recupera la rosa giocatori dell'utente"""
+    try:
+        user_id = get_current_user(authorization)
+        
+        conn = get_db_connection()
+        if not conn:
+            raise HTTPException(status_code=500, detail="Database unavailable")
+        
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        cursor.execute("""
+            SELECT player_id as id, player_name as name, player_team as team, player_pos as pos,
+                   avg_rating, prob_score, prob_assist
+            FROM user_rosa
+            WHERE user_id = %s
+            ORDER BY added_at DESC
+        """, (user_id,))
+        
+        rosa = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        
+        return {
+            "status": "success",
+            "data": list(rosa) if rosa else []
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Get rosa error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 # ============================================================================
 # API - PICKS
@@ -589,6 +818,7 @@ async def load_batch_data(picks: list[PickData] = [], players: list[PlayerData] 
     except Exception as e:
         logger.error(f"Batch load error: {e}")
         return {"status": "error", "message": str(e)}, 500
+
 # ============================================================================
 # API - PICKS TODAY
 # ============================================================================
@@ -636,6 +866,7 @@ async def get_picks_today():
             
     except Exception as e:
         return {"error": f"Errore: {str(e)}"}
+
 # ============================================================================
 # API - V5HIGH PICKS
 # ============================================================================
@@ -654,6 +885,7 @@ async def get_v5high_picks():
     except Exception as e:
         logger.error(f"Error reading picks: {e}")
         return []
+
 # ============================================================================
 # ROOT
 # ============================================================================
