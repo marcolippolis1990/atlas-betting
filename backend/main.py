@@ -11,6 +11,9 @@ from datetime import datetime
 import logging
 import json
 import requests
+from passlib.context import CryptContext
+from jwt import encode, decode, ExpiredSignatureError, InvalidTokenError
+from datetime import timedelta
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
