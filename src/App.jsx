@@ -154,6 +154,10 @@ function App() {
                   localStorage.removeItem('atlas_user');
                   setIsLoggedIn(false);
                   setUserEmail('');
+                  setHomeTab('schedine');
+                  setPicksData(null);
+                  setSelectedPick(null);
+                  window.location.reload();
                 }}
                 style={{
                   padding: '8px 16px',
@@ -477,7 +481,7 @@ function App() {
 
           {/* FANTACALCIO TAB */}
           {homeTab === 'fantacalcio' && (
-            <FantacalcioTab isLoggedIn={isLoggedIn} userEmail={userEmail} />
+            <FantacalcioTab />
           )}
 
           {/* IL PROGETTO TAB */}
