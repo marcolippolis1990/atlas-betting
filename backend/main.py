@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import os
@@ -485,7 +485,7 @@ async def login(req: LoginRequest):
 # API - ROSA GIOCATORI
 # ============================================================================
 
-def get_current_user(authorization: str = None):
+def get_current_user(authorization: str = Header(None)):
     """Estrae user_id dal token JWT"""
     if not authorization:
         raise HTTPException(status_code=401, detail="Token mancante")
@@ -503,7 +503,7 @@ def get_current_user(authorization: str = None):
         raise HTTPException(status_code=401, detail="Token invalido")
 
 @app.post("/api/user/rosa")
-async def save_rosa(req: RosaRequest, authorization: str = None):
+async def save_rosa(req: RosaRequest, authorization: str = Header(None)):
     """Salva la rosa giocatori dell'utente"""
     try:
         user_id = get_current_user(authorization)
@@ -549,7 +549,7 @@ async def save_rosa(req: RosaRequest, authorization: str = None):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/user/rosa")
-async def get_rosa(authorization: str = None):
+async def get_rosa(authorization: str = Header(None)):
     """Recupera la rosa giocatori dell'utente"""
     try:
         user_id = get_current_user(authorization)
