@@ -367,6 +367,34 @@ function FantacalcioTab() {
           </div>
 
           <div className="stats-table">
+            {/* INTESTAZIONE TABELLA */}
+            <div style={{
+              padding: '12px',
+              backgroundColor: '#0a1420',
+              borderBottom: '2px solid #00d4ff',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '10px',
+              borderRadius: '4px'
+            }}>
+              <div style={{flex: 1}}>
+                <p style={{color: '#00d4ff', fontWeight: 'bold', margin: 0, fontSize: '12px'}}>GIOCATORE</p>
+              </div>
+              
+              <div style={{display: 'flex', gap: '15px', width: '320px'}}>
+                <span style={{color: '#4ade80', fontWeight: 'bold', fontSize: '11px', textAlign: 'center'}}>Rating</span>
+                <span style={{color: '#00d4ff', fontWeight: 'bold', fontSize: '11px', textAlign: 'center'}}>Goal %</span>
+                <span style={{color: '#facc15', fontWeight: 'bold', fontSize: '11px', textAlign: 'center'}}>Assist %</span>
+                <span style={{color: '#aaa', fontWeight: 'bold', fontSize: '11px', textAlign: 'center'}}>Fair Sc.</span>
+              </div>
+
+              <div style={{width: '50px', textAlign: 'center'}}>
+                <p style={{color: '#aaa', fontWeight: 'bold', margin: 0, fontSize: '11px'}}>AZIONE</p>
+              </div>
+            </div>
+
+            {/* RIGHE GIOCATORI */}
             {filteredPlayers.length > 0 ? (
               filteredPlayers.map((player, idx) => (
                 <div key={idx} className="stat-row">
@@ -446,8 +474,26 @@ function FantacalcioTab() {
             </div>
           ) : (
             <div style={{padding: '30px', textAlign: 'center', backgroundColor: '#1a2332', borderRadius: '8px', border: '2px solid #facc15'}}>
-              <p style={{color: '#facc15', marginBottom: '15px'}}>👉 Aggiungi giocatori da "Statistiche Giocatori"</p>
-              <p style={{color: '#aaa', fontSize: '13px', margin: 0}}>Sfoglia i giocatori, filtra per ruolo o squadra, e clicca ➕ per aggiungerli</p>
+              <p style={{color: '#facc15', marginBottom: '15px', fontSize: '16px'}}>👉 La tua rosa è vuota!</p>
+              <p style={{color: '#aaa', fontSize: '13px', marginBottom: '20px'}}>Sfoglia i giocatori disponibili e aggiungili alla tua rosa</p>
+              <button
+                onClick={() => setActiveTab('statistiche')}
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: '#4ade80',
+                  color: '#000',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  transition: 'all 0.3s'
+                }}
+                onMouseEnter={(e) => e.target.style.transform = 'translateY(-2px)'}
+                onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
+              >
+                📊 Vai a Statistiche Giocatori
+              </button>
             </div>
           )}
         </div>
