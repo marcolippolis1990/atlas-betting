@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import './LoginModal.css';
 
 function LoginModal({ isOpen, onClose, onLogin, initialMode = 'login' }) {
-  const API_URL = "https://atlas-betting-production.up.railway.app";
   const [mode, setMode] = useState(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
