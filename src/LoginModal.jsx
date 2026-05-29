@@ -126,6 +126,25 @@ function LoginModal({ isOpen, onClose, onLogin, initialMode = 'login' }) {
           >
             {mode === 'login' ? 'REGISTRATI' : 'ACCEDI'}
           </button>
+          
+          {mode === 'login' && (
+            <p style={{color: '#aaa', margin: '15px 0 0 0', fontSize: '12px', textAlign: 'center'}}>
+              <button
+                type="button"
+                onClick={() => alert('Contatta l\'amministratore per resettare la password')}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#00d4ff',
+                  cursor: 'pointer',
+                  textDecoration: 'underline',
+                  fontSize: '12px'
+                }}
+              >
+                Password dimenticata?
+              </button>
+            </p>
+          )}
         </div>
       </div>
     </div>
