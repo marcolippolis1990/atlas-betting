@@ -57,7 +57,7 @@ function FantacalcioTab() {
   useEffect(() => {
     const loadPlayers = async () => {
       try {
-        const response = await fetch('/player_props_2026-05-02.json');
+        const response = await fetch('/player_props_updated.json');
         const data = await response.json();
         
         const allPlayersArray = [];
