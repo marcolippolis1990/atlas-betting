@@ -1,0 +1,131 @@
+{
+  "Udinese|Torino": {
+    "home": "Udinese",
+    "away": "Torino",
+    "league": "Serie A",
+    "date": "2026-05-02",
+    "matchup_stats": {
+      "home_injuries": 100,
+      "away_injuries": 165,
+      "injury_advantage": "Away ha +65 infortuni",
+      "home_rank": 11,
+      "away_rank": 13,
+      "h2h_avg_goals": 2.2,
+      "h2h_btts_pct": 46.7,
+      "market_over_boost": -8.0,
+      "market_btts_boost": -0.3
+    },
+    "players": {
+      "Arthur Atta": {
+        "team": "Udinese",
+        "position": "M",
+        "rating_base": 8.9,
+        "rating_adjustment": 0,
+        "prob_score_adjustment": -0.03,
+        "prob_assist_adjustment": 0,
+        "reasoning": [
+          "H2H basso ritmo (avg 2.20 goal)"
+        ]
+      },
+      "Kingsley Ehizibue": {
+        "team": "Udinese",
+        "position": "M",
+        "rating_base": 8.2,
+        "rating_adjustment": 0,
+        "prob_score_adjustment": -0.03,
+        "prob_assist_adjustment": 0,
+        "reasoning": [
+          "H2H basso ritmo (avg 2.20 goal)"
+        ]
+      },
+      "J\u00fcrgen Ekkelenkamp": {
+        "team": "Udinese",
+        "position": "F",
+        "rating_base": 7.0,
+        "rating_adjustment": 0.215,
+        "prob_score_adjustment": 0.032,
+        "prob_assist_adjustment": 0,
+        "reasoning": [
+          "Squadra avversaria con +65 infortuni \u2192 +0.5% goal",
+          "Avversario in bassa classifica (rank 2) \u2192 +0.1% goal",
+          "H2H basso ritmo (avg 2.20 goal)"
+        ]
+      },
+      "Jesper Karlstrom": {
+        "team": "Udinese",
+        "position": "M",
+        "rating_base": 6.9,
+        "rating_adjustment": 0,
+        "prob_score_adjustment": -0.03,
+        "prob_assist_adjustment": 0,
+        "reasoning": [
+          "H2H basso ritmo (avg 2.20 goal)"
+        ]
+      },
+      "Nicol\u00f2 Zaniolo": {
+        "team": "Udinese",
+        "position": "F",
+        "rating_base": 6.9,
+        "rating_adjustment": 0.215,
+        "prob_score_adjustment": 0.032,
+        "prob_assist_adjustment": 0,
+        "reasoning": [
+          "Squadra avversaria con +65 infortuni \u2192 +0.5% goal",
+          "Avversario in bassa classifica (rank 2) \u2192 +0.1% goal",
+          "H2H basso ritmo (avg 2.20 goal)"
+        ]
+      },
+      "Nikola Vla\u0161i\u0107": {
+        "team": "Torino",
+        "position": "F",
+        "rating_base": 7.5,
+        "rating_adjustment": 0,
+        "prob_score_adjustment": -0.03,
+        "prob_assist_adjustment": 0,
+        "reasoning": [
+          "H2H basso ritmo (avg 2.20 goal)"
+        ]
+      },
+      "Emirhan \u0130lkhan": {
+        "team": "Torino",
+        "position": "M",
+        "rating_base": 7.5,
+        "rating_adjustment": 0,
+        "prob_score_adjustment": -0.03,
+        "prob_assist_adjustment": 0,
+        "reasoning": [
+          "H2H basso ritmo (avg 2.20 goal)"
+        ]
+      },
+      "Ardian Ismajli": {
+        "team": "Torino",
+        "position": "D",
+        "rating_base": 7.3,
+        "rating_adjustment": 0,
+        "prob_score_adjustment": 0,
+        "prob_assist_adjustment": 0,
+        "reasoning": []
+      },
+      "Sa\u00fal Coco": {
+        "team": "Torino",
+        "position": "D",
+        "rating_base": 7.2,
+        "rating_adjustment": 0,
+        "prob_score_adjustment": 0,
+        "prob_assist_adjustment": 0,
+        "reasoning": []
+      },
+      "Giovanni Simeone": {
+        "team": "Torino",
+        "position": "F",
+        "rating_base": 7.2,
+        "rating_adjustment": 0,
+        "prob_score_adjustment": -0.03,
+        "prob_assist_adjustment": 0,
+        "reasoning": [
+          "H2H basso ritmo (avg 2.20 goal)"
+        ]
+      }
+    }
+  }
+}
