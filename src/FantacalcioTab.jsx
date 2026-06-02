@@ -12,6 +12,7 @@ function FantacalcioTab() {
   const [topPlayers, setTopPlayers] = useState([]);
   const [allTeams, setAllTeams] = useState([]);
   const [selectedFormation, setSelectedFormation] = useState('4-3-3');
+  const [matchupAnalysis, setMatchupAnalysis] = useState({});
 
   // Formazioni disponibili
   const formations = {
@@ -57,7 +58,7 @@ function FantacalcioTab() {
   useEffect(() => {
     const loadPlayers = async () => {
       try {
-        const response = await fetch('/player_props_updated.json');
+        const response = await fetch('/player_props_2026-05-02.json');
         const data = await response.json();
         
         const allPlayersArray = [];
@@ -112,6 +113,24 @@ function FantacalcioTab() {
     };
 
     loadPlayers();
+  }, []);
+
+  // Carica matchup analysis di ATLAS
+  useEffect(() => {
+    const loadMatchupAnalysis = async () => {
+      try {
+        const response = await fetch('/fantacalcio_matchup_analysis_2026-05-02.json');
+        if (response.ok) {
+          const data = await response.json();
+          setMatchupAnalysis(data);
+          console.log('✅ ATLAS Matchup Analysis caricato:', Object.keys(data).length, 'matchup');
+        }
+      } catch (err) {
+        console.log('⚠️ Matchup analysis non trovato (opzionale, ma consigliato)');
+      }
+    };
+    
+    loadMatchupAnalysis();
   }, []);
 
   // Filtra giocatori
@@ -252,6 +271,30 @@ function FantacalcioTab() {
       console.error('Errore:', err);
       setUserRosa([...newRosa, userRosa.find(p => p.id === playerId)]);
     }
+  };
+
+  // Ricerca adjustment di ATLAS per un giocatore in un matchup specifico
+  const getPlayerAdjustment = (playerName, playerTeam) => {
+    for (const [matchupKey, matchupData] of Object.entries(matchupAnalysis)) {
+      if (matchupData.players && matchupData.players[playerName]) {
+        const adjustment = matchupData.players[playerName];
+        
+        // Calcola rating adjusted
+        const adjustedRating = adjustment.rating_base + adjustment.rating_adjustment;
+        
+        return {
+          found: true,
+          matchup: `${matchupData.home} vs ${matchupData.away}`,
+          ratingBase: adjustment.rating_base,
+          ratingAdjustment: adjustment.rating_adjustment,
+          ratingAdjusted: adjustedRating.toFixed(2),
+          probScoreAdj: adjustment.prob_score_adjustment,
+          probAssistAdj: adjustment.prob_assist_adjustment,
+          reasoning: adjustment.reasoning
+        };
+      }
+    }
+    return { found: false };
   };
 
   const getRoleLabel = (pos) => {
@@ -515,52 +558,67 @@ function FantacalcioTab() {
 
             {/* RIGHE GIOCATORI */}
             {filteredPlayers.length > 0 ? (
-              filteredPlayers.map((player, idx) => (
-                <div key={idx} className="stat-row">
-                  <div className="stat-info">
-                    <h4 style={{color: '#fff', margin: 0}}>{player.name}</h4>
-                    <p style={{color: '#aaa', fontSize: '12px', margin: '3px 0 0 0'}}>
-                      {player.team} • {getRoleLabel(player.pos)}
-                    </p>
-                  </div>
-                  
-                  <div className="stat-numbers">
-                    <span className="number" title="Rating medio">
-                      <strong style={{color: '#4ade80'}}>{player.avg_rating}</strong>
-                    </span>
-                    <span className="number" title="Probabilità goal">
-                      <strong style={{color: '#00d4ff'}}>{(player.prob_score * 100).toFixed(0)}%</strong>
-                    </span>
-                    <span className="number" title="Probabilità assist">
-                      <strong style={{color: '#facc15'}}>{(player.prob_assist * 100).toFixed(0)}%</strong>
-                    </span>
-                    <span className="number" title="Fair score">
-                      <strong style={{color: '#aaa'}}>{player.fair_score}</strong>
-                    </span>
-                  </div>
+              filteredPlayers.map((player, idx) => {
+                const adjustment = getPlayerAdjustment(player.name, player.team);
+                return (
+                  <div key={idx} className="stat-row">
+                    <div className="stat-info">
+                      <h4 style={{color: '#fff', margin: 0}}>{player.name}</h4>
+                      <p style={{color: '#aaa', fontSize: '12px', margin: '3px 0 0 0'}}>
+                        {player.team} • {getRoleLabel(player.pos)}
+                      </p>
+                      {adjustment.found && (
+                        <div style={{marginTop: '6px', fontSize: '11px', color: adjustment.ratingAdjustment > 0 ? '#4ade80' : '#ff6b6b'}}>
+                          <strong>⚡ {adjustment.matchup}</strong>
+                          <br/>
+                          Rating: {adjustment.ratingBase} → <strong>{adjustment.ratingAdjusted}</strong> {adjustment.ratingAdjustment > 0 ? '+' : ''}{adjustment.ratingAdjustment.toFixed(2)}
+                          {adjustment.reasoning.length > 0 && (
+                            <div style={{marginTop: '4px', color: '#aaa', fontStyle: 'italic'}}>
+                              {adjustment.reasoning[0]}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="stat-numbers">
+                      <span className="number" title="Rating medio">
+                        <strong style={{color: '#4ade80'}}>{player.avg_rating}</strong>
+                      </span>
+                      <span className="number" title="Probabilità goal">
+                        <strong style={{color: '#00d4ff'}}>{(player.prob_score * 100).toFixed(0)}%</strong>
+                      </span>
+                      <span className="number" title="Probabilità assist">
+                        <strong style={{color: '#facc15'}}>{(player.prob_assist * 100).toFixed(0)}%</strong>
+                      </span>
+                      <span className="number" title="Fair score">
+                        <strong style={{color: '#aaa'}}>{player.fair_score}</strong>
+                      </span>
+                    </div>
 
-                  {isLoggedIn && (
-                    <button 
-                      className="btn-small"
-                      onClick={() => togglePlayerInRosa(player)}
-                      style={{
-                        padding: '6px 12px',
-                        backgroundColor: userRosa.find(p => p.id === player.id) ? '#4ade80' : '#fff',
-                        color: userRosa.find(p => p.id === player.id) ? '#000' : '#000',
-                        border: 'none',
-                        borderRadius: '4px',
-                        fontWeight: 'bold',
-                        cursor: 'pointer',
-                        fontSize: '12px',
-                        transition: 'all 0.2s',
-                        boxShadow: userRosa.find(p => p.id === player.id) ? '0 0 10px rgba(74, 222, 128, 0.3)' : 'none'
-                      }}
-                    >
-                      {userRosa.find(p => p.id === player.id) ? '✓' : '➕'}
-                    </button>
-                  )}
-                </div>
-              ))
+                    {isLoggedIn && (
+                      <button 
+                        className="btn-small"
+                        onClick={() => togglePlayerInRosa(player)}
+                        style={{
+                          padding: '6px 12px',
+                          backgroundColor: userRosa.find(p => p.id === player.id) ? '#4ade80' : '#fff',
+                          color: userRosa.find(p => p.id === player.id) ? '#000' : '#000',
+                          border: 'none',
+                          borderRadius: '4px',
+                          fontWeight: 'bold',
+                          cursor: 'pointer',
+                          fontSize: '12px',
+                          transition: 'all 0.2s',
+                          boxShadow: userRosa.find(p => p.id === player.id) ? '0 0 10px rgba(74, 222, 128, 0.3)' : 'none'
+                        }}
+                      >
+                        {userRosa.find(p => p.id === player.id) ? '✓' : '➕'}
+                      </button>
+                    )}
+                  </div>
+                );
+              })
             ) : (
               <p style={{color: '#aaa', textAlign: 'center', padding: '20px'}}>Nessun giocatore trovato</p>
             )}
