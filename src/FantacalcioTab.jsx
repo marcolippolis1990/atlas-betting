@@ -275,7 +275,7 @@ function FantacalcioTab() {
 
   // Ricerca adjustment di ATLAS per un giocatore in un matchup specifico
   const getPlayerAdjustment = (playerName, playerTeam) => {
-    for (const [matchupKey, matchupData] of Object.entries(matchupAnalysis)) {
+    for (const matchupData of Object.values(matchupAnalysis)) {
       if (matchupData.players && matchupData.players[playerName]) {
         const adjustment = matchupData.players[playerName];
         
