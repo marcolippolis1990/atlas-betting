@@ -906,7 +906,6 @@ function FantacalcioTab() {
       )}
 
     </section>
-    </section>
   );
 }
 
