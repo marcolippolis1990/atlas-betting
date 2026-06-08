@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './FantacalcioTab.css';
+import PAIAlerts from './PAIAlerts';
 
 function FantacalcioTab() {
   const [activeTab, setActiveTab] = useState('formazione');
@@ -321,7 +322,9 @@ function FantacalcioTab() {
   const sortedSelectedForComparison = [...selectedForComparison].sort((a, b) => b.avg_rating - a.avg_rating);
 
   return (
-    <section className="section fantacalcio-section">
+    <section className="section fantacalcio-section"> 
+      {isLoggedIn && userRosa.length > 0 && <PAIAlerts userRosa={userRosa} />}
+      
       {/* TABS */}
       <nav className="fantacalcio-tabs">
         <button 
