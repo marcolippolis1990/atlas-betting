@@ -1,0 +1,123 @@
+{
+  "Lecce|Fiorentina": {
+    "home": "Lecce",
+    "away": "Fiorentina",
+    "league": "Serie A",
+    "date": "2026-04-20",
+    "pai_home": {
+      "team": "Lecce",
+      "formation": "4-5-1",
+      "pai_score": 1.0,
+      "system_risk": "LOW",
+      "risk_label": "✅ Sistema intatto",
+      "n_absent": 0,
+      "critical_absent": [],
+      "backup_quality": 6.92
+    },
+    "pai_away": {
+      "team": "Fiorentina",
+      "formation": "3-5-2",
+      "pai_score": 0.649,
+      "system_risk": "HIGH",
+      "risk_label": "🔴 SISTEMA A RISCHIO — assenti impattanti",
+      "n_absent": 2,
+      "critical_absent": [
+        {
+          "name": "Rolando Mandragora",
+          "position": "M",
+          "rating": 7.05,
+          "role_weight": 1.2,
+          "best_sub": "Nicolò Fagioli",
+          "best_sub_rating": 7.44,
+          "quality_gap": 0,
+          "impact": 6.201
+        },
+        {
+          "name": "Moise Kean",
+          "position": "F",
+          "rating": 6.69,
+          "role_weight": 1.3,
+          "best_sub": "Albert Guðmundsson",
+          "best_sub_rating": 6.91,
+          "quality_gap": 0,
+          "impact": 6.088
+        }
+      ],
+      "backup_quality": 6.85
+    }
+  },
+  "Crystal Palace|West Ham": {
+    "home": "Crystal Palace",
+    "away": "West Ham",
+    "league": "Premier League",
+    "date": "2026-04-20",
+    "pai_home": {
+      "team": "Crystal Palace",
+      "formation": "3-4-3",
+      "pai_score": 1.0,
+      "system_risk": "LOW",
+      "risk_label": "✅ Sistema intatto",
+      "n_absent": 0,
+      "critical_absent": [],
+      "backup_quality": 6.9
+    },
+    "pai_away": {
+      "team": "West Ham",
+      "formation": "4-5-1",
+      "pai_score": 0.849,
+      "system_risk": "MED",
+      "risk_label": "⚠️  SISTEMA PARZIALMENTE COMPROMESSO",
+      "n_absent": 1,
+      "critical_absent": [
+        {
+          "name": "Crysencio Summerville",
+          "position": "M",
+          "rating": 6.96,
+          "role_weight": 1.1,
+          "best_sub": "Mateus Fernandes",
+          "best_sub_rating": 7.2,
+          "quality_gap": 0,
+          "impact": 5.283
+        }
+      ],
+      "backup_quality": 6.77
+    }
+  },
+  "Aston Villa|Sunderland": {
+    "home": "Aston Villa",
+    "away": "Sunderland",
+    "league": "Premier League",
+    "date": "2026-04-20",
+    "pai_home": {
+      "team": "Aston Villa",
+      "formation": "4-5-1",
+      "pai_score": 0.816,
+      "system_risk": "MED",
+      "risk_label": "⚠️  SISTEMA PARZIALMENTE COMPROMESSO",
+      "n_absent": 1,
+      "critical_absent": [
+        {
+          "name": "Ezri Konsa",
+          "position": "D",
+          "rating": 7.06,
+          "role_weight": 1.0,
+          "best_sub": "Matty Cash",
+          "best_sub_rating": 7.0,
+          "quality_gap": 0.06,
+          "impact": 6.43
+        }
+      ],
+      "backup_quality": 6.98
+    },
+    "pai_away": {
+      "team": "Sunderland",
+      "formation": "4-5-1",
+      "pai_score": 1.0,
+      "system_risk": "LOW",
+      "risk_label": "✅ Sistema intatto",
+      "n_absent": 0,
+      "critical_absent": [],
+      "backup_quality": 6.78
+    }
+  }
+}
