@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './FantacalcioTab.css';
 import PAIAlerts from './PAIAlerts';
+import ATLASAnalytics from './ATLASAnalytics';
 
 function FantacalcioTab() {
   const [activeTab, setActiveTab] = useState('formazione');
@@ -345,6 +346,12 @@ function FantacalcioTab() {
         >
           📊 Statistiche Giocatori
         </button>
+        <button 
+  className={`tab ${activeTab === 'analytics' ? 'active' : ''}`}
+  onClick={() => setActiveTab('analytics')}
+>
+  📈 ATLAS Analytics
+</button>
         {isLoggedIn && (
           <button 
             className={`tab ${activeTab === 'confronta' ? 'active' : ''}`}
@@ -891,6 +898,14 @@ function FantacalcioTab() {
           )}
         </div>
       )}
+      {/* ATLAS ANALYTICS */}
+      {activeTab === 'analytics' && (
+        <div className="fantacalcio-content">
+          <ATLASAnalytics />
+        </div>
+      )}
+
+    </section>
     </section>
   );
 }
