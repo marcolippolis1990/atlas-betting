@@ -10,7 +10,7 @@ function PAIAlerts({ userRosa }) {
     const loadInjuriesAndPAI = async () => {
       try {
         // Carica lista infortunati (usiamo la data di oggi)
-        const today = new Date().toISOString().split('T')[0];
+        const today = '2026-04-20';
         
         // Prova a caricare il file injuries più recente
         const injuriesResponse = await fetch(`/injuries_${today}.json`);
