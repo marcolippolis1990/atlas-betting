@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 
 function PAIAlerts({ userRosa }) {
   const [injuredPlayers, setInjuredPlayers] = useState([]);
-  const [paiData, setPaiData] = useState({});
   const [loading, setLoading] = useState(true);
 
   // Carica dati infortuni e PAI
@@ -10,7 +9,7 @@ function PAIAlerts({ userRosa }) {
     const loadInjuriesAndPAI = async () => {
       try {
         // Carica lista infortunati (usiamo la data di oggi)
-        const today = '2026-04-20';
+        const today = new Date().toISOString().split('T')[0];
         
         // Prova a caricare il file injuries più recente
         const injuriesResponse = await fetch(`/injuries_${today}.json`);
@@ -48,8 +47,6 @@ function PAIAlerts({ userRosa }) {
             });
           }
         });
-
-        setPaiData(paiMap);
 
         // Controlla quali giocatori della rosa sono infortunati
         const injured = [];
