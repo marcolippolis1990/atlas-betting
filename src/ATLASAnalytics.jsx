@@ -59,7 +59,7 @@ function ATLASAnalytics() {
       const recordMatch = text.match(/Record:\s*(\d+)/);
       const wrMatch = text.match(/WR:\s*([\d.]+%)/);
       const roiMatch = text.match(/ROI:\s*([-\d.]+%)/);
-      const plMatch = text.match(/P&L:\s*([-\d.]+\s*EUR)/);
+      const plTotalMatch = text.match(/P&L:\s*([-\d.]+\s*EUR)/);
       const budgetMatch = text.match(/Budget:\s*([^\s]+\s*EUR)/);
 
       // Estrai Universe ML
@@ -79,7 +79,7 @@ function ATLASAnalytics() {
         record: recordMatch ? recordMatch[1] : '?',
         wr: wrMatch ? wrMatch[1] : '?',
         roi: roiMatch ? roiMatch[1] : '?',
-        plTotal: plMatch ? plMatch[1] : '?',
+        plTotal: plTotalMatch ? plTotalMatch[1] : '?',
         budget: budgetMatch ? budgetMatch[1] : '?',
         serieA: {
           wr: serieAMatch ? serieAMatch[1] : '84.6%',
