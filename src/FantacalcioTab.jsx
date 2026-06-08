@@ -303,8 +303,11 @@ function FantacalcioTab() {
     return labels[pos] || pos;
   };
 
-  // NUOVA FUNZIONE: Toggle giocatore per il confronto
-  const togglePlayerForComparison = (player) => {
+  // FIX: Toggle giocatore per il confronto con prevenzione double-click
+  const togglePlayerForComparison = (player, e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     const isSelected = selectedForComparison.find(p => p.id === player.id);
     
     if (isSelected) {
@@ -313,6 +316,9 @@ function FantacalcioTab() {
       setSelectedForComparison([...selectedForComparison, player]);
     }
   };
+
+  // FIX: Ordina giocatori per confronto per rating decrescente
+  const sortedSelectedForComparison = [...selectedForComparison].sort((a, b) => b.avg_rating - a.avg_rating);
 
   return (
     <section className="section fantacalcio-section">
@@ -646,7 +652,7 @@ function FantacalcioTab() {
         </div>
       )}
 
-      {/* CONFRONTA GIOCATORI - NUOVO STEP 2 */}
+      {/* CONFRONTA GIOCATORI - STEP 2 CORRETTO */}
       {isLoggedIn && activeTab === 'confronta' && (
         <div className="fantacalcio-content">
           <h2 style={{color: '#00d4ff'}}>🔄 Confronta Giocatori della Tua Rosa</h2>
@@ -659,15 +665,19 @@ function FantacalcioTab() {
                 
                 <div style={{maxHeight: '300px', overflowY: 'auto', border: '1px solid #00d4ff', borderRadius: '6px', padding: '15px', backgroundColor: '#1a2332'}}>
                   {userRosa.length > 0 ? (
-                    userRosa.map((player, idx) => {
+                    userRosa.map((player) => {
                       const isSelected = selectedForComparison.find(p => p.id === player.id);
                       return (
-                        <label key={idx} style={{display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', cursor: 'pointer', padding: '8px', backgroundColor: isSelected ? '#378add' : 'transparent', borderRadius: '4px', transition: 'all 0.2s'}}>
+                        <div 
+                          key={player.id}
+                          onClick={(e) => togglePlayerForComparison(player, e)}
+                          style={{display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', cursor: 'pointer', padding: '8px', backgroundColor: isSelected ? '#378add' : 'transparent', borderRadius: '4px', transition: 'all 0.2s', userSelect: 'none'}}
+                        >
                           <input 
                             type="checkbox"
                             checked={isSelected ? true : false}
-                            onChange={() => togglePlayerForComparison(player)}
-                            style={{cursor: 'pointer'}}
+                            onChange={() => {}}
+                            style={{cursor: 'pointer', pointerEvents: 'none'}}
                           />
                           <span style={{color: isSelected ? '#fff' : '#d0d0d0', fontWeight: isSelected ? '500' : '400', flex: 1}}>
                             {player.name}
@@ -675,7 +685,7 @@ function FantacalcioTab() {
                           <span style={{color: isSelected ? '#fff' : '#aaa', fontSize: '12px'}}>
                             {player.team} • {getRoleLabel(player.pos)}
                           </span>
-                        </label>
+                        </div>
                       );
                     })
                   ) : (
@@ -690,20 +700,20 @@ function FantacalcioTab() {
                 </div>
               </div>
 
-              {/* CONFRONTO DINAMICO */}
-              {selectedForComparison.length > 0 && (
+              {/* CONFRONTO DINAMICO - ORDINATO PER RATING */}
+              {sortedSelectedForComparison.length > 0 && (
                 <div>
-                  <h3 style={{color: '#00d4ff', marginBottom: '15px'}}>Confronto</h3>
+                  <h3 style={{color: '#00d4ff', marginBottom: '15px'}}>Confronto (ordinati per rating)</h3>
                   
                   {/* GRID DINAMICA */}
-                  <div style={{display: 'grid', gridTemplateColumns: `repeat(${Math.min(selectedForComparison.length, 4)}, 1fr)`, gap: '15px', marginBottom: '20px'}}>
-                    {selectedForComparison.map((player, idx) => {
+                  <div style={{display: 'grid', gridTemplateColumns: `repeat(${Math.min(sortedSelectedForComparison.length, 4)}, 1fr)`, gap: '15px', marginBottom: '20px'}}>
+                    {sortedSelectedForComparison.map((player, idx) => {
                       const colors = ['#4ade80', '#fbbf24', '#ff6b6b', '#60a5fa', '#8b5cf6'];
                       const color = colors[idx % colors.length];
                       const adjustment = getPlayerAdjustment(player.name, player.team);
                       
                       return (
-                        <div key={idx} style={{background: '#1a2332', border: `2px solid ${color}`, borderRadius: '8px', padding: '15px'}}>
+                        <div key={player.id} style={{background: '#1a2332', border: `2px solid ${color}`, borderRadius: '8px', padding: '15px'}}>
                           <div style={{background: color, color: color === '#fbbf24' ? '#000' : '#fff', padding: '6px 10px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold', marginBottom: '10px', display: 'inline-block'}}>
                             {idx === 0 ? '🥇 1°' : idx === 1 ? '🥈 2°' : idx === 2 ? '🥉 3°' : `🏅 ${idx + 1}°`}
                           </div>
@@ -750,16 +760,41 @@ function FantacalcioTab() {
                   <div style={{background: '#2a3f4f', border: '1px solid #00d4ff', borderRadius: '8px', padding: '15px', marginBottom: '20px'}}>
                     <h4 style={{color: '#00d4ff', margin: '0 0 10px 0'}}>💡 Consiglio Tattico</h4>
                     <p style={{color: '#d0d0d0', margin: 0, fontSize: '13px', lineHeight: '1.6'}}>
-                      {selectedForComparison.length === 2 
-                        ? `Scegli ${selectedForComparison.reduce((a, b) => a.avg_rating > b.avg_rating ? a : b).name} per massimizzare i punti questa giornata.`
-                        : `Confronta ${selectedForComparison.length} giocatori e scegli la combinazione tattica migliore per la tua formazione.`
+                      {sortedSelectedForComparison.length === 2 
+                        ? `Scegli ${sortedSelectedForComparison[0].name} per massimizzare i punti questa giornata (rating: ${sortedSelectedForComparison[0].avg_rating}).`
+                        : `Confronta ${sortedSelectedForComparison.length} giocatori. In ordine di ranking: ${sortedSelectedForComparison.slice(0, 3).map(p => p.name).join(', ')}${sortedSelectedForComparison.length > 3 ? '...' : ''}`
                       }
                     </p>
+                  </div>
+
+                  {/* NOTIZIE E LINK GIORNALI */}
+                  <div style={{marginBottom: '20px'}}>
+                    <h4 style={{color: '#00d4ff', marginBottom: '15px'}}>📰 Notizie e Link</h4>
+                    
+                    <div style={{background: '#2a3f4f', border: '1px solid #00d4ff', borderRadius: '8px', padding: '15px', marginBottom: '15px'}}>
+                      <h5 style={{color: '#d0d0d0', margin: '0 0 10px 0', fontSize: '13px'}}>Ultimissime notizie sui giocatori selezionati</h5>
+                      {sortedSelectedForComparison.slice(0, 3).map((player) => (
+                        <div key={player.id} style={{background: '#1a2332', border: '0.5px solid #00d4ff', borderRadius: '6px', padding: '10px', marginBottom: '8px', fontSize: '12px'}}>
+                          <strong style={{color: '#4ade80'}}>{player.name}</strong> ({player.team})<br/>
+                          <span style={{color: '#aaa'}}>📊 Forma: {(player.prob_score * 100).toFixed(0)}% goal, {(player.prob_assist * 100).toFixed(0)}% assist</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div style={{background: '#2a3f4f', border: '1px solid #00d4ff', borderRadius: '8px', padding: '15px'}}>
+                      <h5 style={{color: '#d0d0d0', margin: '0 0 10px 0', fontSize: '13px'}}>Leggi analisi su giornali specializzati</h5>
+                      <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px'}}>
+                        <a href="#" target="_blank" rel="noopener noreferrer" style={{background: '#1a2332', border: '0.5px solid #378add', borderRadius: '6px', padding: '10px', textAlign: 'center', textDecoration: 'none', color: '#378add', fontWeight: '500', fontSize: '12px'}}>Gazzetta dello Sport</a>
+                        <a href="#" target="_blank" rel="noopener noreferrer" style={{background: '#1a2332', border: '0.5px solid #378add', borderRadius: '6px', padding: '10px', textAlign: 'center', textDecoration: 'none', color: '#378add', fontWeight: '500', fontSize: '12px'}}>Sky Sport</a>
+                        <a href="#" target="_blank" rel="noopener noreferrer" style={{background: '#1a2332', border: '0.5px solid #378add', borderRadius: '6px', padding: '10px', textAlign: 'center', textDecoration: 'none', color: '#378add', fontWeight: '500', fontSize: '12px'}}>Corriere dello Sport</a>
+                        <a href="#" target="_blank" rel="noopener noreferrer" style={{background: '#1a2332', border: '0.5px solid #378add', borderRadius: '6px', padding: '10px', textAlign: 'center', textDecoration: 'none', color: '#378add', fontWeight: '500', fontSize: '12px'}}>Transfermarkt</a>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
 
-              {selectedForComparison.length === 0 && (
+              {sortedSelectedForComparison.length === 0 && (
                 <div style={{padding: '30px', textAlign: 'center', backgroundColor: '#1a2332', borderRadius: '8px', border: '2px solid #facc15'}}>
                   <p style={{color: '#facc15', fontSize: '16px'}}>👇 Seleziona almeno un giocatore dalla lista sopra</p>
                 </div>
