@@ -1,0 +1,68 @@
+{
+  "Lecce": {
+    "team_id": 867,
+    "league": "Serie A",
+    "injured": [
+      {
+        "id": 152456,
+        "name": "Lameck Banda",
+        "type": "infortunio",
+        "reason": "lesione muscolare"
+      }
+    ]
+  },
+  "Fiorentina": {
+    "team_id": 502,
+    "league": "Serie A",
+    "injured": [
+      {
+        "id": 89234,
+        "name": "Rolando Mandragora",
+        "type": "infortunio",
+        "reason": "affaticamento"
+      },
+      {
+        "id": 90456,
+        "name": "Moise Kean",
+        "type": "infortunio",
+        "reason": "problema muscolare"
+      }
+    ]
+  },
+  "Crystal Palace": {
+    "team_id": 52,
+    "league": "Premier League",
+    "injured": [
+      {
+        "id": 145678,
+        "name": "Cheick Oumar Doucoure",
+        "type": "infortunio",
+        "reason": "infortunio muscolare"
+      }
+    ]
+  },
+  "West Ham": {
+    "team_id": 48,
+    "league": "Premier League",
+    "injured": [
+      {
+        "id": 134567,
+        "name": "Crysencio Summerville",
+        "type": "infortunio",
+        "reason": "affaticamento"
+      }
+    ]
+  },
+  "Aston Villa": {
+    "team_id": 67,
+    "league": "Premier League",
+    "injured": [
+      {
+        "id": 98765,
+        "name": "Ezri Konsa",
+        "type": "infortunio",
+        "reason": "problema difensivo"
+      }
+    ]
+  }
+}
