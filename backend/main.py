@@ -30,12 +30,10 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30 * 24  # 30 giorni
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def hash_password(password: str) -> str:
-    # Bcrypt ha un limite di 72 byte
     password = password[:72]
     return pwd_context.hash(password)
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    # Bcrypt ha un limite di 72 byte
     plain_password = plain_password[:72]
     return pwd_context.verify(plain_password, hashed_password)
 
@@ -224,7 +222,6 @@ async def create_tables_if_not_exist():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
 
-        -- Aggiungi colonne mancanti se non esistono
         ALTER TABLE users
         ADD COLUMN IF NOT EXISTS password VARCHAR(255) NOT NULL DEFAULT '';
 
@@ -269,6 +266,25 @@ async def create_tables_if_not_exist():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
         """)
+
+        # ----------------------------------------------------------------
+        # NUOVO STEP 3 — Tabella storico rosa
+        # Logga ogni aggiunta e rimozione giocatore con data/ora
+        # ----------------------------------------------------------------
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS user_rosa_history (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+            player_id INTEGER NOT NULL,
+            player_name VARCHAR(150) NOT NULL,
+            player_team VARCHAR(100) NOT NULL,
+            player_pos VARCHAR(5) NOT NULL,
+            avg_rating NUMERIC(4,2),
+            action VARCHAR(10) NOT NULL,
+            action_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        """)
+        # ----------------------------------------------------------------
         
         conn.commit()
         logger.info("Tables created/verified")
@@ -299,7 +315,6 @@ async def load_initial_data():
         
         cursor = conn.cursor()
         
-        # Check se picks sono già caricati
         cursor.execute("SELECT COUNT(*) FROM picks")
         picks_count = cursor.fetchone()[0]
         
@@ -443,21 +458,18 @@ async def register(req: RegisterRequest):
         
         cursor = conn.cursor()
         
-        # Controlla se l'email esiste già
         cursor.execute("SELECT id FROM users WHERE email = %s", (req.email,))
         if cursor.fetchone():
             cursor.close()
             conn.close()
             raise HTTPException(status_code=400, detail="Email già registrata")
         
-        # Controlla se lo username esiste già
         cursor.execute("SELECT id FROM users WHERE username = %s", (req.username,))
         if cursor.fetchone():
             cursor.close()
             conn.close()
             raise HTTPException(status_code=400, detail="Username già in uso")
         
-        # Hash password e crea utente
         hashed_password = hash_password(req.password)
         
         cursor.execute(
@@ -469,7 +481,6 @@ async def register(req: RegisterRequest):
         cursor.close()
         conn.close()
         
-        # Crea token
         access_token = create_access_token(data={"sub": req.email, "user_id": user_id})
         
         return LoginResponse(
@@ -501,7 +512,6 @@ async def login(req: LoginRequest):
         if not user or not verify_password(req.password, user['password']):
             raise HTTPException(status_code=401, detail="Email o password scorretti")
         
-        # Crea token
         access_token = create_access_token(data={"sub": req.email, "user_id": user['id']})
         
         return LoginResponse(
@@ -529,7 +539,6 @@ async def request_reset(req: ResetPasswordRequest):
         
         cursor = conn.cursor(cursor_factory=RealDictCursor)
         
-        # Cerca l'utente per email o username
         if req.email:
             cursor.execute("SELECT id, email FROM users WHERE email = %s", (req.email,))
         else:
@@ -540,14 +549,11 @@ async def request_reset(req: ResetPasswordRequest):
         if not user:
             cursor.close()
             conn.close()
-            # Non dire che l'utente non esiste per motivi di sicurezza
             return {"status": "success", "message": "Se l'utente esiste, riceverà un link di reset"}
         
-        # Genera un token unico
         reset_token = str(uuid.uuid4())
-        expires_at = datetime.utcnow() + timedelta(hours=1)  # Token valido per 1 ora
+        expires_at = datetime.utcnow() + timedelta(hours=1)
         
-        # Salva il token nel database
         cursor.execute(
             "INSERT INTO password_reset_tokens (user_id, token, expires_at) VALUES (%s, %s, %s)",
             (user['id'], reset_token, expires_at)
@@ -556,7 +562,6 @@ async def request_reset(req: ResetPasswordRequest):
         cursor.close()
         conn.close()
         
-        # Costruisci il link (il frontend dovrà avere una pagina /reset-password?token=...)
         reset_link = f"https://atlas-betting.vercel.app/reset-password?token={reset_token}"
         
         return {
@@ -583,7 +588,6 @@ async def reset_password(req: ResetPasswordConfirm):
         
         cursor = conn.cursor(cursor_factory=RealDictCursor)
         
-        # Verifica il token
         cursor.execute(
             "SELECT user_id, expires_at FROM password_reset_tokens WHERE token = %s",
             (req.token,)
@@ -595,20 +599,17 @@ async def reset_password(req: ResetPasswordConfirm):
             conn.close()
             raise HTTPException(status_code=400, detail="Token non valido")
         
-        # Controlla se il token è scaduto
         if datetime.fromisoformat(token_data['expires_at'].isoformat()) < datetime.utcnow():
             cursor.close()
             conn.close()
             raise HTTPException(status_code=400, detail="Token scaduto")
         
-        # Aggiorna la password
         hashed_password = hash_password(req.new_password)
         cursor.execute(
             "UPDATE users SET password = %s WHERE id = %s",
             (hashed_password, token_data['user_id'])
         )
         
-        # Cancella il token (one-time use)
         cursor.execute("DELETE FROM password_reset_tokens WHERE token = %s", (req.token,))
         
         conn.commit()
@@ -645,7 +646,10 @@ def get_current_user(authorization: str = Header(None)):
 
 @app.post("/api/user/rosa")
 async def save_rosa(req: RosaRequest, authorization: str = Header(None)):
-    """Salva la rosa giocatori dell'utente"""
+    """
+    Salva la rosa giocatori dell'utente.
+    NUOVO STEP 3: confronta rosa vecchia vs nuova e logga ogni aggiunta/rimozione.
+    """
     try:
         user_id = get_current_user(authorization)
         
@@ -653,12 +657,54 @@ async def save_rosa(req: RosaRequest, authorization: str = Header(None)):
         if not conn:
             raise HTTPException(status_code=500, detail="Database unavailable")
         
-        cursor = conn.cursor()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+
+        # ----------------------------------------------------------------
+        # NUOVO STEP 3 — Leggi la rosa attuale prima di sovrascriverla
+        # ----------------------------------------------------------------
+        cursor.execute("""
+            SELECT player_id, player_name, player_team, player_pos, avg_rating
+            FROM user_rosa
+            WHERE user_id = %s
+        """, (user_id,))
+        rosa_vecchia = {row['player_id']: row for row in cursor.fetchall()}
+        rosa_nuova = {p.id: p for p in req.players}
+
+        # Calcola chi è stato aggiunto e chi rimosso
+        ids_vecchi = set(rosa_vecchia.keys())
+        ids_nuovi = set(rosa_nuova.keys())
+        aggiunti = ids_nuovi - ids_vecchi
+        rimossi = ids_vecchi - ids_nuovi
+
+        # Inserisci nel log storico
+        history_data = []
+        for pid in aggiunti:
+            p = rosa_nuova[pid]
+            history_data.append((
+                user_id, p.id, p.name, p.team, p.pos, p.avg_rating, 'add'
+            ))
+        for pid in rimossi:
+            p = rosa_vecchia[pid]
+            history_data.append((
+                user_id, p['player_id'], p['player_name'],
+                p['player_team'], p['player_pos'], p['avg_rating'], 'remove'
+            ))
+
+        if history_data:
+            # Usa cursor normale (non RealDictCursor) per execute_batch
+            cursor2 = conn.cursor()
+            execute_batch(cursor2, """
+                INSERT INTO user_rosa_history
+                    (user_id, player_id, player_name, player_team, player_pos, avg_rating, action)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """, history_data, page_size=50)
+            cursor2.close()
+        # ----------------------------------------------------------------
+
+        # Cancella la rosa vecchia e inserisci la nuova (comportamento invariato)
+        cursor3 = conn.cursor()
+        cursor3.execute("DELETE FROM user_rosa WHERE user_id = %s", (user_id,))
         
-        # Cancella la rosa vecchia
-        cursor.execute("DELETE FROM user_rosa WHERE user_id = %s", (user_id,))
-        
-        # Inserisci la nuova rosa
         rosa_data = []
         for player in req.players:
             rosa_data.append((
@@ -673,16 +719,23 @@ async def save_rosa(req: RosaRequest, authorization: str = Header(None)):
             ))
         
         if rosa_data:
-            execute_batch(cursor, """
+            execute_batch(cursor3, """
                 INSERT INTO user_rosa (user_id, player_id, player_name, player_team, player_pos, avg_rating, prob_score, prob_assist)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             """, rosa_data, page_size=50)
         
         conn.commit()
         cursor.close()
+        cursor3.close()
         conn.close()
         
-        return {"status": "success", "message": "Rosa salvata", "players_saved": len(req.players)}
+        return {
+            "status": "success",
+            "message": "Rosa salvata",
+            "players_saved": len(req.players),
+            "added": len(aggiunti),      # NUOVO STEP 3
+            "removed": len(rimossi)      # NUOVO STEP 3
+        }
     except HTTPException:
         raise
     except Exception as e:
@@ -720,6 +773,67 @@ async def get_rosa(authorization: str = Header(None)):
         raise
     except Exception as e:
         logger.error(f"Get rosa error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ============================================================================
+# NUOVO STEP 3 — API STORICO ROSA
+# ============================================================================
+
+@app.get("/api/user/rosa/history")
+async def get_rosa_history(authorization: str = Header(None), limit: int = 50):
+    """
+    Restituisce lo storico delle aggiunte/rimozioni dalla rosa.
+    Ogni voce ha: player_name, player_team, player_pos, avg_rating, action (add/remove), action_at
+    """
+    try:
+        user_id = get_current_user(authorization)
+        
+        conn = get_db_connection()
+        if not conn:
+            raise HTTPException(status_code=500, detail="Database unavailable")
+        
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        cursor.execute("""
+            SELECT
+                player_id,
+                player_name,
+                player_team,
+                player_pos,
+                avg_rating,
+                action,
+                action_at
+            FROM user_rosa_history
+            WHERE user_id = %s
+            ORDER BY action_at DESC
+            LIMIT %s
+        """, (user_id, limit))
+        
+        history = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        
+        # Converti timestamps in stringhe ISO per JSON
+        result = []
+        for row in history:
+            result.append({
+                "player_id": row["player_id"],
+                "player_name": row["player_name"],
+                "player_team": row["player_team"],
+                "player_pos": row["player_pos"],
+                "avg_rating": float(row["avg_rating"]) if row["avg_rating"] else None,
+                "action": row["action"],
+                "action_at": row["action_at"].isoformat() if row["action_at"] else None
+            })
+        
+        return {
+            "status": "success",
+            "count": len(result),
+            "data": result
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Get rosa history error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # ============================================================================
@@ -913,7 +1027,6 @@ async def load_batch_data(picks: list[PickData] = [], players: list[PlayerData] 
         cursor = conn.cursor()
         loaded = 0
         
-        # Carica picks
         for pick in picks:
             try:
                 cursor.execute("""
@@ -925,7 +1038,6 @@ async def load_batch_data(picks: list[PickData] = [], players: list[PlayerData] 
             except Exception as e:
                 logger.error(f"Pick insert error: {e}")
         
-        # Carica players
         for player in players:
             try:
                 cursor.execute("""
@@ -938,7 +1050,6 @@ async def load_batch_data(picks: list[PickData] = [], players: list[PlayerData] 
             except Exception as e:
                 logger.error(f"Player insert error: {e}")
         
-        # Carica matches
         for match in matches:
             try:
                 cursor.execute("""
@@ -966,15 +1077,8 @@ async def load_batch_data(picks: list[PickData] = [], players: list[PlayerData] 
 
 @app.get("/api/picks-today")
 async def get_picks_today():
-    """
-    Legge il file picks più recente da GitHub API
-    Formato file: picks_YYYY-MM-DD.json
-    """
     try:
-        # URL della cartella picks su GitHub API
         github_url = "https://api.github.com/repos/marcolippolis1990/atlas-betting/contents/backend/data/picks"
-        
-        # Fetch dalla API di GitHub
         response = requests.get(github_url)
         
         if response.status_code != 200:
@@ -984,8 +1088,6 @@ async def get_picks_today():
             }
         
         files = response.json()
-        
-        # Filtra solo i file picks_*.json
         pick_files = [f for f in files if f['name'].startswith('picks_') and f['name'].endswith('.json')]
         
         if not pick_files:
@@ -994,10 +1096,7 @@ async def get_picks_today():
                 "message": "Salva un file picks_YYYY-MM-DD.json in GitHub /backend/data/picks/"
             }
         
-        # Prendi il file più recente
         latest_file = sorted(pick_files, key=lambda x: x['name'])[-1]
-        
-        # Leggi il contenuto del file
         file_response = requests.get(latest_file['download_url'])
         
         if file_response.status_code == 200:
