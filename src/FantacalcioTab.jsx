@@ -13,6 +13,7 @@ function FantacalcioTab() {
   const [allTeams, setAllTeams] = useState([]);
   const [selectedFormation, setSelectedFormation] = useState('4-3-3');
   const [matchupAnalysis, setMatchupAnalysis] = useState({});
+  const [selectedForComparison, setSelectedForComparison] = useState([]);
 
   // Formazioni disponibili
   const formations = {
@@ -302,6 +303,17 @@ function FantacalcioTab() {
     return labels[pos] || pos;
   };
 
+  // NUOVA FUNZIONE: Toggle giocatore per il confronto
+  const togglePlayerForComparison = (player) => {
+    const isSelected = selectedForComparison.find(p => p.id === player.id);
+    
+    if (isSelected) {
+      setSelectedForComparison(selectedForComparison.filter(p => p.id !== player.id));
+    } else {
+      setSelectedForComparison([...selectedForComparison, player]);
+    }
+  };
+
   return (
     <section className="section fantacalcio-section">
       {/* TABS */}
@@ -324,6 +336,14 @@ function FantacalcioTab() {
         >
           📊 Statistiche Giocatori
         </button>
+        {isLoggedIn && (
+          <button 
+            className={`tab ${activeTab === 'confronta' ? 'active' : ''}`}
+            onClick={() => setActiveTab('confronta')}
+          >
+            🔄 Confronta Giocatori
+          </button>
+        )}
         {isLoggedIn && (
           <button 
             className={`tab ${activeTab === 'rosa' ? 'active' : ''}`}
@@ -623,6 +643,134 @@ function FantacalcioTab() {
               <p style={{color: '#aaa', textAlign: 'center', padding: '20px'}}>Nessun giocatore trovato</p>
             )}
           </div>
+        </div>
+      )}
+
+      {/* CONFRONTA GIOCATORI - NUOVO STEP 2 */}
+      {isLoggedIn && activeTab === 'confronta' && (
+        <div className="fantacalcio-content">
+          <h2 style={{color: '#00d4ff'}}>🔄 Confronta Giocatori della Tua Rosa</h2>
+          
+          {userRosa.length > 0 ? (
+            <div>
+              {/* MODALE SELEZIONE */}
+              <div style={{padding: '20px', backgroundColor: '#2a3f4f', borderRadius: '8px', marginBottom: '20px', border: '1px solid #00d4ff'}}>
+                <h3 style={{color: '#00d4ff', marginTop: 0, marginBottom: '15px'}}>Seleziona giocatori (senza limite di ruolo)</h3>
+                
+                <div style={{maxHeight: '300px', overflowY: 'auto', border: '1px solid #00d4ff', borderRadius: '6px', padding: '15px', backgroundColor: '#1a2332'}}>
+                  {userRosa.length > 0 ? (
+                    userRosa.map((player, idx) => {
+                      const isSelected = selectedForComparison.find(p => p.id === player.id);
+                      return (
+                        <label key={idx} style={{display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', cursor: 'pointer', padding: '8px', backgroundColor: isSelected ? '#378add' : 'transparent', borderRadius: '4px', transition: 'all 0.2s'}}>
+                          <input 
+                            type="checkbox"
+                            checked={isSelected ? true : false}
+                            onChange={() => togglePlayerForComparison(player)}
+                            style={{cursor: 'pointer'}}
+                          />
+                          <span style={{color: isSelected ? '#fff' : '#d0d0d0', fontWeight: isSelected ? '500' : '400', flex: 1}}>
+                            {player.name}
+                          </span>
+                          <span style={{color: isSelected ? '#fff' : '#aaa', fontSize: '12px'}}>
+                            {player.team} • {getRoleLabel(player.pos)}
+                          </span>
+                        </label>
+                      );
+                    })
+                  ) : (
+                    <p style={{color: '#aaa', textAlign: 'center'}}>Nessun giocatore nella rosa</p>
+                  )}
+                </div>
+                
+                <div style={{marginTop: '15px', padding: '10px', backgroundColor: '#1a2332', borderRadius: '6px', border: '1px solid #00d4ff'}}>
+                  <p style={{color: '#d0d0d0', margin: 0, fontSize: '13px'}}>
+                    📊 <strong>{selectedForComparison.length}</strong> giocatore{selectedForComparison.length !== 1 ? 'i' : ''} selezionato{selectedForComparison.length !== 1 ? 'i' : ''}
+                  </p>
+                </div>
+              </div>
+
+              {/* CONFRONTO DINAMICO */}
+              {selectedForComparison.length > 0 && (
+                <div>
+                  <h3 style={{color: '#00d4ff', marginBottom: '15px'}}>Confronto</h3>
+                  
+                  {/* GRID DINAMICA */}
+                  <div style={{display: 'grid', gridTemplateColumns: `repeat(${Math.min(selectedForComparison.length, 4)}, 1fr)`, gap: '15px', marginBottom: '20px'}}>
+                    {selectedForComparison.map((player, idx) => {
+                      const colors = ['#4ade80', '#fbbf24', '#ff6b6b', '#60a5fa', '#8b5cf6'];
+                      const color = colors[idx % colors.length];
+                      const adjustment = getPlayerAdjustment(player.name, player.team);
+                      
+                      return (
+                        <div key={idx} style={{background: '#1a2332', border: `2px solid ${color}`, borderRadius: '8px', padding: '15px'}}>
+                          <div style={{background: color, color: color === '#fbbf24' ? '#000' : '#fff', padding: '6px 10px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold', marginBottom: '10px', display: 'inline-block'}}>
+                            {idx === 0 ? '🥇 1°' : idx === 1 ? '🥈 2°' : idx === 2 ? '🥉 3°' : `🏅 ${idx + 1}°`}
+                          </div>
+                          
+                          <h4 style={{color: '#fff', margin: '10px 0 3px 0'}}>{player.name}</h4>
+                          <p style={{color: '#aaa', fontSize: '12px', margin: '0 0 12px 0'}}>{player.team} • {getRoleLabel(player.pos)}</p>
+                          
+                          <table style={{width: '100%', fontSize: '12px', marginBottom: '12px'}}>
+                            <tbody>
+                              <tr style={{borderBottom: '1px solid #00d4ff'}}>
+                                <td style={{padding: '4px 0', color: '#aaa'}}>Rating</td>
+                                <td style={{textAlign: 'right', padding: '4px 0', fontWeight: 'bold', color: '#4ade80'}}>{player.avg_rating}</td>
+                              </tr>
+                              <tr style={{borderBottom: '1px solid #00d4ff'}}>
+                                <td style={{padding: '4px 0', color: '#aaa'}}>Goal %</td>
+                                <td style={{textAlign: 'right', padding: '4px 0', fontWeight: 'bold', color: '#00d4ff'}}>{(player.prob_score * 100).toFixed(0)}%</td>
+                              </tr>
+                              <tr style={{borderBottom: '1px solid #00d4ff'}}>
+                                <td style={{padding: '4px 0', color: '#aaa'}}>Assist %</td>
+                                <td style={{textAlign: 'right', padding: '4px 0', fontWeight: 'bold', color: '#facc15'}}>{(player.prob_assist * 100).toFixed(0)}%</td>
+                              </tr>
+                              <tr>
+                                <td style={{padding: '4px 0', color: '#aaa'}}>Fair Sc.</td>
+                                <td style={{textAlign: 'right', padding: '4px 0', fontWeight: 'bold'}}>{player.fair_score}</td>
+                              </tr>
+                            </tbody>
+                          </table>
+
+                          {adjustment.found && (
+                            <div style={{background: 'rgba(74, 222, 128, 0.1)', borderLeft: '3px solid #4ade80', padding: '8px', borderRadius: '4px', fontSize: '11px', color: adjustment.ratingAdjustment > 0 ? '#4ade80' : '#ff6b6b'}}>
+                              <strong>⚡ {adjustment.matchup}</strong>
+                              <br/>
+                              Rating: {adjustment.ratingBase} → <strong>{adjustment.ratingAdjusted}</strong>
+                              <br/>
+                              {adjustment.reasoning[0] && <div style={{marginTop: '4px', color: '#aaa', fontSize: '10px'}}>{adjustment.reasoning[0]}</div>}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* CONSIGLIO TATTICO */}
+                  <div style={{background: '#2a3f4f', border: '1px solid #00d4ff', borderRadius: '8px', padding: '15px', marginBottom: '20px'}}>
+                    <h4 style={{color: '#00d4ff', margin: '0 0 10px 0'}}>💡 Consiglio Tattico</h4>
+                    <p style={{color: '#d0d0d0', margin: 0, fontSize: '13px', lineHeight: '1.6'}}>
+                      {selectedForComparison.length === 2 
+                        ? `Scegli ${selectedForComparison.reduce((a, b) => a.avg_rating > b.avg_rating ? a : b).name} per massimizzare i punti questa giornata.`
+                        : `Confronta ${selectedForComparison.length} giocatori e scegli la combinazione tattica migliore per la tua formazione.`
+                      }
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {selectedForComparison.length === 0 && (
+                <div style={{padding: '30px', textAlign: 'center', backgroundColor: '#1a2332', borderRadius: '8px', border: '2px solid #facc15'}}>
+                  <p style={{color: '#facc15', fontSize: '16px'}}>👇 Seleziona almeno un giocatore dalla lista sopra</p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div style={{padding: '30px', textAlign: 'center', backgroundColor: '#1a2332', borderRadius: '8px', border: '2px solid #facc15'}}>
+              <p style={{color: '#facc15', marginBottom: '15px', fontSize: '16px'}}>👉 La tua rosa è vuota!</p>
+              <p style={{color: '#aaa', fontSize: '13px'}}>Aggiungi giocatori alla rosa prima di confrontarli</p>
+            </div>
+          )}
         </div>
       )}
 
