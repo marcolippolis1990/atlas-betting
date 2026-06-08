@@ -776,7 +776,8 @@ function FantacalcioTab() {
                       {sortedSelectedForComparison.slice(0, 3).map((player) => (
                         <div key={player.id} style={{background: '#1a2332', border: '0.5px solid #00d4ff', borderRadius: '6px', padding: '10px', marginBottom: '8px', fontSize: '12px'}}>
                           <strong style={{color: '#4ade80'}}>{player.name}</strong> ({player.team})<br/>
-                          <span style={{color: '#aaa'}}>📊 Forma: {(player.prob_score * 100).toFixed(0)}% goal, {(player.prob_assist * 100).toFixed(0)}% assist</span>
+                          <span style={{color: '#aaa'}}>📊 Forma: {(player.prob_score * 100).toFixed(0)}% goal, {(player.prob_assist * 100).toFixed(0)}% assist</span><br/>
+                          <button onClick={() => window.open(`https://www.gazzetta.it/calcio/`, '_blank')} style={{background: 'transparent', border: 'none', color: '#378add', fontWeight: '500', fontSize: '11px', cursor: 'pointer', padding: 0, marginTop: '4px'}}>📰 Leggi su Gazzetta →</button>
                         </div>
                       ))}
                     </div>
@@ -784,10 +785,10 @@ function FantacalcioTab() {
                     <div style={{background: '#2a3f4f', border: '1px solid #00d4ff', borderRadius: '8px', padding: '15px'}}>
                       <h5 style={{color: '#d0d0d0', margin: '0 0 10px 0', fontSize: '13px'}}>Leggi analisi su giornali specializzati</h5>
                       <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px'}}>
-                        <button onClick={() => window.open('https://www.gazzetta.it', '_blank')} style={{background: '#1a2332', border: '0.5px solid #378add', borderRadius: '6px', padding: '10px', textAlign: 'center', textDecoration: 'none', color: '#378add', fontWeight: '500', fontSize: '12px', cursor: 'pointer'}}>Gazzetta dello Sport</button>
-                        <button onClick={() => window.open('https://sport.sky.it', '_blank')} style={{background: '#1a2332', border: '0.5px solid #378add', borderRadius: '6px', padding: '10px', textAlign: 'center', textDecoration: 'none', color: '#378add', fontWeight: '500', fontSize: '12px', cursor: 'pointer'}}>Sky Sport</button>
-                        <button onClick={() => window.open('https://www.corriere.it', '_blank')} style={{background: '#1a2332', border: '0.5px solid #378add', borderRadius: '6px', padding: '10px', textAlign: 'center', textDecoration: 'none', color: '#378add', fontWeight: '500', fontSize: '12px', cursor: 'pointer'}}>Corriere dello Sport</button>
-                        <button onClick={() => window.open('https://www.transfermarkt.com', '_blank')} style={{background: '#1a2332', border: '0.5px solid #378add', borderRadius: '6px', padding: '10px', textAlign: 'center', textDecoration: 'none', color: '#378add', fontWeight: '500', fontSize: '12px', cursor: 'pointer'}}>Transfermarkt</button>
+                        <button onClick={() => window.open('https://www.gazzetta.it/calcio/', '_blank')} style={{background: '#1a2332', border: '0.5px solid #378add', borderRadius: '6px', padding: '10px', textAlign: 'center', color: '#378add', fontWeight: '500', fontSize: '12px', cursor: 'pointer'}}>Gazzetta dello Sport</button>
+                        <button onClick={() => window.open('https://sport.sky.it/calcio/', '_blank')} style={{background: '#1a2332', border: '0.5px solid #378add', borderRadius: '6px', padding: '10px', textAlign: 'center', color: '#378add', fontWeight: '500', fontSize: '12px', cursor: 'pointer'}}>Sky Sport</button>
+                        <button onClick={() => window.open('https://www.corrieredellosport.it/', '_blank')} style={{background: '#1a2332', border: '0.5px solid #378add', borderRadius: '6px', padding: '10px', textAlign: 'center', color: '#378add', fontWeight: '500', fontSize: '12px', cursor: 'pointer'}}>Corriere dello Sport</button>
+                        <button onClick={() => window.open('https://www.transfermarkt.com', '_blank')} style={{background: '#1a2332', border: '0.5px solid #378add', borderRadius: '6px', padding: '10px', textAlign: 'center', color: '#378add', fontWeight: '500', fontSize: '12px', cursor: 'pointer'}}>Transfermarkt</button>
                       </div>
                     </div>
                   </div>
