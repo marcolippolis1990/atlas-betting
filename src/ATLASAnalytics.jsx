@@ -33,14 +33,13 @@ function ATLASAnalytics() {
             record: '335',
             wr: '69.3%',
             roi: '-5.4%',
-            pl: '-91.25 EUR',
+            plTotal: '-91.25 EUR',
             budget: '467.24 EUR',
             serieA: { wr: '84.6%', record: '55/65' },
             championship: { wr: '80.6%', record: '79/98' },
-            pl: '78.3%',
+            plWR: '78.3%',
             plWeek: '+2.85 EUR',
-            lesson: 'Forest 4-1 Burnley: xG 1.54 ma 5 gol. Varianza estrema, non errore!',
-            seriesA_pl: '+€2.85'
+            lesson: 'Forest 4-1 Burnley: xG 1.54 ma 5 gol. Varianza estrema, non errore!'
           });
         }
         setLoading(false);
