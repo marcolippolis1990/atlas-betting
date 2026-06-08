@@ -67,8 +67,7 @@ function ATLASAnalytics() {
       const serieARecordMatch = text.match(/Serie A U3\.5:.*?(\d+\/\d+)/);
       const champsMatch = text.match(/Championship.*?WR\s*([\d.]+%)/);
       const champsRecordMatch = text.match(/Championship.*?(\d+\/\d+)/);
-      const plMatch2 = text.match(/PL U3\.5:.*?WR\s*([\d.]+%)/);
-      const plRecordMatch = text.match(/PL U3\.5:.*?(\d+\/\d+)/);
+      const plMatch = text.match(/PL U3\.5:.*?WR\s*([\d.]+%)/);
 
       // Estrai P&L settimana
       const plWeekMatch = text.match(/P&L settimana.*?TOTALE.*?([-+]\d+\.\d+\s*EUR)/);
@@ -80,7 +79,7 @@ function ATLASAnalytics() {
         record: recordMatch ? recordMatch[1] : '?',
         wr: wrMatch ? wrMatch[1] : '?',
         roi: roiMatch ? roiMatch[1] : '?',
-        pl: plMatch ? plMatch[1] : '?',
+        plTotal: plMatch ? plMatch[1] : '?',
         budget: budgetMatch ? budgetMatch[1] : '?',
         serieA: {
           wr: serieAMatch ? serieAMatch[1] : '84.6%',
@@ -90,7 +89,7 @@ function ATLASAnalytics() {
           wr: champsMatch ? champsMatch[1] : '80.6%',
           record: champsRecordMatch ? champsRecordMatch[1] : '79/98'
         },
-        pl: plMatch2 ? plMatch2[1] : '78.3%',
+        plWR: plMatch ? plMatch[1] : '78.3%',
         plWeek: plWeekMatch ? plWeekMatch[1] : '+€2.85',
         lesson: lessonMatch ? lessonMatch[1] : 'Nessuna lezione disponibile'
       };
@@ -192,7 +191,7 @@ function ATLASAnalytics() {
         {/* P&L */}
         <div style={{
           background: '#2a3f4f',
-          border: `2px solid ${analyticsData.pl.includes('-') ? '#ff6b6b' : '#4ade80'}`,
+          border: `2px solid ${analyticsData.plTotal && analyticsData.plTotal.includes('-') ? '#ff6b6b' : '#4ade80'}`,
           borderRadius: '8px',
           padding: '15px',
           textAlign: 'center'
@@ -201,12 +200,12 @@ function ATLASAnalytics() {
             P&L TOTALE
           </p>
           <p style={{
-            color: analyticsData.pl.includes('-') ? '#ff6b6b' : '#4ade80',
+            color: analyticsData.plTotal && analyticsData.plTotal.includes('-') ? '#ff6b6b' : '#4ade80',
             fontWeight: 'bold',
             fontSize: '18px',
             margin: 0
           }}>
-            {analyticsData.pl}
+            {analyticsData.plTotal}
           </p>
           <p style={{color: '#aaa', fontSize: '10px', margin: '5px 0 0 0'}}>
             profit/loss
@@ -298,7 +297,7 @@ function ATLASAnalytics() {
           </p>
           <p style={{color: '#d0d0d0', margin: '0 0 5px 0'}}>
             <strong style={{color: '#facc15', fontSize: '16px'}}>
-              {analyticsData.pl}
+              {analyticsData.plWR}
             </strong>
           </p>
           <p style={{color: '#aaa', fontSize: '12px', margin: 0}}>
